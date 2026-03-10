@@ -1,156 +1,108 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Профиль</title>
 
-<meta charset="UTF-8">
-<title>Профиль</title>
-
-<link rel="stylesheet" href="../styles/style.css">
-<link rel="stylesheet" href="../styles/profile.css">
-
+  <link rel="stylesheet" href="/styles/profile.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
 </head>
-
 <body>
-
-<div id="navbar"></div>
-
-<div class="profile-container">
-
-<div class="profile-card">
-
-<div class="profile-header">
-
-<div class="avatar-wrapper">
-
-<img id="avatar" class="avatar">
-
-<label class="avatar-upload">
-
-<input type="file" id="avatarInput" hidden>
-📷
-
-</label>
-
-</div>
-
-<div class="profile-info">
-
-<div class="username-row">
-
-<h2 id="username"></h2>
-
-<span class="edit-icon" onclick="editUsername()">✏️</span>
-
-</div>
-<p id="email"></p>
-<p id="bio"></p>
-
-<div id="socialLinks" class="social-links"></div>
-
-<div class="social-buttons">
-
-<button onclick="addLink('soundcloud')">🎧 SoundCloud</button>
-
-<button onclick="addLink('telegram')">✈ Telegram</button>
-
-<button onclick="addLink('instagram')">📸 Instagram</button>
-
-<button onclick="addLink('website')">🌐 Website</button>
-
-</div>
-
-<button onclick="openEdit()">Редактировать профиль</button>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="profile-content">
-
-<div class="posts-section">
-
-<div class="section-header">
-
-<h3>Посты</h3>
-<button onclick="createPost()">＋ Пост</button>
-
-</div>
-
-<div id="postsList"></div>
-
-</div>
-
-
-<div class="tracks-section">
-
-<div class="section-header">
-
-<h3>Треки</h3>
-<button onclick="addTrack()">＋ Трек</button>
-
-</div>
-
-<div id="tracksList"></div>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div id="editModal" class="modal">
-
-<div class="modal-content">
-
-<h3>Редактировать профиль</h3>
-
-<input id="editUsername" placeholder="Ник">
-
-<textarea id="editBio" placeholder="Описание"></textarea>
-
-<input id="editAvatar" placeholder="URL аватара">
-
-<input id="editSoundcloud" placeholder="SoundCloud">
-<input id="editInstagram" placeholder="Instagram">
-<input id="editTwitter" placeholder="Twitter">
-<input id="editTelegram" placeholder="Telegram">
-<input id="editWebsite" placeholder="Website">
-
-<div class="modal-buttons">
-
-<button onclick="saveProfile()">Сохранить</button>
-<button onclick="closeEdit()">Отмена</button>
-
-</div>
-
-<p id="profileError"></p>
-
-</div>
-
-</div>
-
-<script src="../js/profile.js"></script>
-
-<script>
-
-fetch("/html/components/navbar.html")
-.then(res => res.text())
-.then(data => {
-
-document.getElementById("navbar").innerHTML = data
-
-const script = document.createElement("script")
-script.src = "/js/navbar.js"
-document.body.appendChild(script)
-
-})
-
-</script>
-
+  <div class="profile-container">
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="avatar-wrapper">
+          <img
+            id="avatar"
+            class="avatar"
+            src="https://i.pravatar.cc/150"
+            alt="Аватар"
+          />
+
+          <label class="avatar-upload" for="avatarInput" title="Изменить аватар">
+            <i class="fa-solid fa-camera"></i>
+          </label>
+          <input id="avatarInput" type="file" accept="image/*" hidden />
+        </div>
+
+        <div class="profile-info">
+          <div class="username-row">
+            <h2 id="username"></h2>
+
+            <button class="icon-btn edit-icon-btn" onclick="editUsername()" title="Изменить ник">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+          </div>
+
+          <div id="usernameEditBox" class="username-edit hidden">
+            <input id="usernameInput" type="text" placeholder="Введите новый ник" />
+            <button class="save-inline-btn" onclick="saveUsername()" title="Сохранить">
+              <i class="fa-solid fa-check"></i>
+            </button>
+            <button class="cancel-inline-btn" onclick="cancelUsernameEdit()" title="Отмена">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <p id="email"></p>
+          <p id="bio"></p>
+
+          <div id="socialLinks" class="social-links"></div>
+
+          <div class="social-buttons">
+            <button onclick="openEdit()">Редактировать профиль</button>
+          </div>
+
+          <p id="profileError" class="error-text"></p>
+          <p id="profileSuccess" class="success-text"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-content">
+      <section class="posts-section">
+        <div class="section-header">
+          <h3>Посты</h3>
+          <button onclick="createPost()">＋ Пост</button>
+        </div>
+        <div id="postsContainer"></div>
+      </section>
+
+      <section class="tracks-section">
+        <div class="section-header">
+          <h3>Треки</h3>
+          <button onclick="addTrack()">＋ Трек</button>
+        </div>
+        <div id="tracksContainer"></div>
+      </section>
+    </div>
+  </div>
+
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3>Редактировать профиль</h3>
+
+      <input id="editUsername" type="text" placeholder="Ник" />
+      <textarea id="editBio" placeholder="О себе"></textarea>
+
+      <input id="editAvatar" type="hidden" />
+
+      <input id="editSoundcloud" type="text" placeholder="Ссылка на SoundCloud" />
+      <input id="editInstagram" type="text" placeholder="Ссылка на Instagram" />
+      <input id="editTelegram" type="text" placeholder="Telegram username или ссылка" />
+      <input id="editWebsite" type="text" placeholder="Ссылка на Website" />
+
+      <div class="modal-buttons">
+        <button onclick="saveProfile()">Сохранить</button>
+        <button class="secondary-btn" onclick="closeEdit()">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/profile.js"></script>
 </body>
 </html>

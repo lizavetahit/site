@@ -232,6 +232,7 @@ async function saveUsername() {
 }
 
 async function saveProfile() {
+
   clearMessages();
 
   const username = document.getElementById("editUsername").value.trim();
@@ -248,7 +249,14 @@ async function saveProfile() {
     return;
   }
 
+  // ограничение био
+  if (bio.length > 200) {
+    setText("profileError", "Описание максимум 200 символов");
+    return;
+  }
+
   try {
+
     const res = await fetch("/update-profile", {
       method: "PUT",
       headers: {
@@ -270,22 +278,28 @@ async function saveProfile() {
     const data = await res.json();
 
     if (!res.ok) {
+
       if (data.error === "username_taken") {
-        setText("profileError", "Этот никнейм уже используется");
+        setText("profileError", "Этот ник уже используется");
         return;
       }
 
-      setText("profileError", data.error || "Не удалось сохранить профиль");
+      setText("profileError", data.error || "Ошибка сохранения");
       return;
     }
 
     closeEdit();
     setText("profileSuccess", "Профиль сохранён");
+
     await loadProfile();
+
   } catch (error) {
+
     console.error(error);
     setText("profileError", "Не удалось сохранить профиль");
+
   }
+
 }
 
 function openCropModal() {
@@ -442,85 +456,119 @@ function addTrack() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+
   const avatarInput = document.getElementById("avatarInput");
   const zoomRange = document.getElementById("zoomRange");
   const cropCircle = document.getElementById("cropCircle");
 
+  const bioInput = document.getElementById("editBio");
+  const bioCount = document.getElementById("bioCount");
+
+  // счетчик символов био
+  if (bioInput && bioCount) {
+
+    bioCount.innerText = bioInput.value.length;
+
+    bioInput.addEventListener("input", () => {
+      bioCount.innerText = bioInput.value.length;
+    });
+
+  }
+
+  // загрузка аватара
   if (avatarInput) {
+
     avatarInput.addEventListener("change", (event) => {
+
       const file = event.target.files && event.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
+
       reader.onload = (e) => {
         initCropImage(e.target.result, file);
       };
+
       reader.readAsDataURL(file);
+
     });
+
   }
 
- if (zoomRange) {
-  zoomRange.addEventListener("input", (event) => {
-    cropState.scale = clamp(
-      parseFloat(event.target.value),
-      cropState.minScale,
-      cropState.maxScale
-    );
+  // масштаб аватара
+  if (zoomRange) {
 
-    updateCropImageTransform();
-  });
-}
+    zoomRange.addEventListener("input", (event) => {
 
+      cropState.scale = clamp(
+        parseFloat(event.target.value),
+        cropState.minScale,
+        cropState.maxScale
+      );
+
+      updateCropImageTransform();
+
+    });
+
+  }
+
+  // управление кропом
   if (cropCircle) {
-  cropCircle.addEventListener("wheel", (event) => {
-    event.preventDefault();
 
-    const zoomStep = cropState.minScale * 0.08;
+    cropCircle.addEventListener("wheel", (event) => {
 
-    if (event.deltaY < 0) {
-      cropState.scale += zoomStep;
-    } else {
-      cropState.scale -= zoomStep;
-    }
+      event.preventDefault();
 
-    cropState.scale = clamp(
-      cropState.scale,
-      cropState.minScale,
-      cropState.maxScale
-    );
+      const zoomStep = cropState.minScale * 0.08;
 
-    if (zoomRange) {
-      zoomRange.value = String(cropState.scale);
-    }
+      if (event.deltaY < 0) {
+        cropState.scale += zoomStep;
+      } else {
+        cropState.scale -= zoomStep;
+      }
 
-    updateCropImageTransform();
-  });
+      cropState.scale = clamp(
+        cropState.scale,
+        cropState.minScale,
+        cropState.maxScale
+      );
 
-  cropCircle.addEventListener("mousedown", (event) => {
-    startCropDrag(event.clientX, event.clientY);
-  });
+      if (zoomRange) {
+        zoomRange.value = String(cropState.scale);
+      }
 
-  window.addEventListener("mousemove", (event) => {
-    moveCropDrag(event.clientX, event.clientY);
-  });
+      updateCropImageTransform();
 
-  window.addEventListener("mouseup", endCropDrag);
+    });
 
-  cropCircle.addEventListener("touchstart", (event) => {
-    const touch = event.touches[0];
-    startCropDrag(touch.clientX, touch.clientY);
-  });
+    cropCircle.addEventListener("mousedown", (event) => {
+      startCropDrag(event.clientX, event.clientY);
+    });
 
-  window.addEventListener("touchmove", (event) => {
-    if (!cropState.dragging) return;
-    const touch = event.touches[0];
-    moveCropDrag(touch.clientX, touch.clientY);
-  });
+    window.addEventListener("mousemove", (event) => {
+      moveCropDrag(event.clientX, event.clientY);
+    });
 
-  window.addEventListener("touchend", endCropDrag);
-}
+    window.addEventListener("mouseup", endCropDrag);
 
+    cropCircle.addEventListener("touchstart", (event) => {
+      const touch = event.touches[0];
+      startCropDrag(touch.clientX, touch.clientY);
+    });
+
+    window.addEventListener("touchmove", (event) => {
+      if (!cropState.dragging) return;
+      const touch = event.touches[0];
+      moveCropDrag(touch.clientX, touch.clientY);
+    });
+
+    window.addEventListener("touchend", endCropDrag);
+
+  }
+
+  // закрытие модальных окон
   window.addEventListener("click", (event) => {
+
     const editModal = document.getElementById("editModal");
     const cropModal = document.getElementById("cropModal");
 
@@ -531,9 +579,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target === cropModal) {
       closeCropModal();
     }
+
   });
 
+  // загрузка профиля
   loadProfile();
+
 });
 
 async function applyCrop() {
@@ -668,4 +719,39 @@ async function removeAvatar() {
 
   }
 
+}
+
+function switchTab(tab){
+
+document.querySelectorAll(".tab-content").forEach(el=>{
+el.classList.remove("active")
+})
+
+document.querySelectorAll(".tab-btn").forEach(el=>{
+el.classList.remove("active")
+})
+
+if(tab==="posts"){
+document.getElementById("postsTab").classList.add("active")
+document.querySelectorAll(".tab-btn")[0].classList.add("active")
+}
+
+if(tab==="tracks"){
+document.getElementById("tracksTab").classList.add("active")
+document.querySelectorAll(".tab-btn")[1].classList.add("active")
+}
+
+if(tab==="mentions"){
+document.getElementById("mentionsTab").classList.add("active")
+document.querySelectorAll(".tab-btn")[2].classList.add("active")
+}
+
+}
+
+function openSettings(){
+document.getElementById("settingsModal").style.display="block"
+}
+
+function closeSettings(){
+document.getElementById("settingsModal").style.display="none"
 }

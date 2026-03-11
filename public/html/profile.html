@@ -71,12 +71,18 @@ document.body.appendChild(script)
 
           <p id="usernameError" class="field-error"></p>
 
-          <p id="email"></p>
-          <p id="bio"></p>
+          
+          <p id="bio" class="bio"></p>
 
           <div class="profile-actions">
-            <button class="main-btn" onclick="openEdit()">Редактировать профиль</button>
-          </div>
+
+<button class="main-btn" onclick="openEdit()">Редактировать профиль</button>
+
+<button class="secondary-btn" onclick="openSettings()">
+<i class="fa-solid fa-gear"></i> Настройки
+</button>
+
+</div>
 
           <p id="profileError" class="field-error"></p>
           <p id="profileSuccess" class="field-success"></p>
@@ -84,23 +90,58 @@ document.body.appendChild(script)
       </div>
     </div>
 
-    <div class="profile-content">
-      <section class="posts-section">
-        <div class="section-header">
-          <h3>Посты</h3>
-          <button class="secondary-btn" onclick="createPost()">＋ Пост</button>
-        </div>
-        <div id="postsContainer"></div>
-      </section>
 
-      <section class="tracks-section">
-        <div class="section-header">
-          <h3>Треки</h3>
-          <button class="secondary-btn" onclick="addTrack()">＋ Трек</button>
-        </div>
-        <div id="tracksContainer"></div>
-      </section>
-    </div>
+    <div class="profile-content">
+
+<div class="profile-tabs">
+
+<button class="tab-btn active" onclick="switchTab('posts')">
+<i class="fa-solid fa-table-cells"></i> Посты
+</button>
+
+<button class="tab-btn" onclick="switchTab('tracks')">
+<i class="fa-solid fa-music"></i> Треки
+</button>
+
+<button class="tab-btn" onclick="switchTab('mentions')">
+<i class="fa-solid fa-at"></i> Упоминания
+</button>
+
+</div>
+
+<div id="postsTab" class="tab-content active">
+
+<div class="section-header">
+<h3>Посты</h3>
+<button class="secondary-btn" onclick="createPost()">＋ Пост</button>
+</div>
+
+<div id="postsContainer"></div>
+
+</div>
+
+<div id="tracksTab" class="tab-content">
+
+<div class="section-header">
+<h3>Треки</h3>
+<button class="secondary-btn" onclick="addTrack()">＋ Трек</button>
+</div>
+
+<div id="tracksContainer"></div>
+
+</div>
+
+<div id="mentionsTab" class="tab-content">
+
+<div class="section-header">
+<h3>Упоминания</h3>
+</div>
+
+<div id="mentionsContainer"></div>
+
+</div>
+
+</div>
   </div>
 
   <div id="editModal" class="modal">
@@ -108,7 +149,11 @@ document.body.appendChild(script)
       <h3>Редактировать профиль</h3>
 
       <input id="editUsername" type="text" placeholder="Ник" />
-      <textarea id="editBio" rows="4" placeholder="О себе"></textarea>
+      <textarea id="editBio" rows="4" maxlength="200" placeholder="Расскажите о себе"></textarea>
+
+<div class="bio-counter">
+<span id="bioCount">0</span>/200
+</div>
 
       <input id="editAvatar" type="hidden" />
 
@@ -148,5 +193,32 @@ document.body.appendChild(script)
 
   <script src="/js/navbar.js"></script>
   <script src="/js/profile.js"></script>
+
+  <div id="settingsModal" class="modal">
+
+<div class="modal-content">
+
+<h3>Настройки аккаунта</h3>
+
+<input id="newEmail" type="email" placeholder="Новая почта">
+
+<input id="currentPassword" type="password" placeholder="Текущий пароль">
+
+<input id="newPassword" type="password" placeholder="Новый пароль">
+
+<div class="modal-buttons">
+
+<button class="main-btn" onclick="changeEmail()">Изменить почту</button>
+
+<button class="main-btn" onclick="changePassword()">Изменить пароль</button>
+
+<button class="secondary-btn" onclick="closeSettings()">Закрыть</button>
+
+</div>
+
+</div>
+
+</div>
+
 </body>
 </html>

@@ -8,6 +8,8 @@ let cropState = {
   file: null,
   image: null,
   scale: 1,
+  minScale: 1,
+  maxScale: 4,
   x: 0,
   y: 0,
   dragging: false,
@@ -131,7 +133,13 @@ async function loadProfile() {
     setText("email", user.email);
     setText("bio", user.bio || "");
 
-    document.getElementById("avatar").src = user.avatar || "https://i.pravatar.cc/150";
+    let avatar = user.avatar;
+
+if (!avatar || avatar === "" || avatar === "null") {
+  avatar = "/images/default-avatar.jpg";
+}
+
+document.getElementById("avatar").src = avatar + "?t=" + Date.now();
 
     document.getElementById("editUsername").value = user.username || "";
     document.getElementById("editBio").value = user.bio || "";
@@ -306,26 +314,57 @@ function closeCropModal() {
 
 function updateCropImageTransform() {
   const cropImage = document.getElementById("cropImage");
-  if (!cropImage) return;
+  if (!cropImage || !cropState.image) return;
 
-  cropImage.style.transform = `translate(${cropState.x}px, ${cropState.y}px) scale(${cropState.scale})`;
+  const circleSize = 280;
+
+  clampCropPosition();
+
+  const scaledWidth = cropState.image.width * cropState.scale;
+  const scaledHeight = cropState.image.height * cropState.scale;
+
+  const left = (circleSize - scaledWidth) / 2 + cropState.x;
+  const top = (circleSize - scaledHeight) / 2 + cropState.y;
+
+  cropImage.style.width = `${scaledWidth}px`;
+  cropImage.style.height = `${scaledHeight}px`;
+  cropImage.style.left = `${left}px`;
+  cropImage.style.top = `${top}px`;
 }
 
 function initCropImage(src, file) {
   const cropImage = document.getElementById("cropImage");
   const zoomRange = document.getElementById("zoomRange");
 
+  const circleSize = 280;
+
   cropState.file = file;
   cropState.image = new Image();
-  cropState.image.src = src;
-  cropState.scale = 1;
-  cropState.x = 0;
-  cropState.y = 0;
 
-  cropImage.src = src;
-  zoomRange.value = "1";
-  updateCropImageTransform();
-  openCropModal();
+  cropState.image.onload = function () {
+    const coverScale = Math.max(
+      circleSize / cropState.image.width,
+      circleSize / cropState.image.height
+    );
+
+    cropState.minScale = coverScale;
+    cropState.maxScale = coverScale * 4;
+    cropState.scale = coverScale;
+    cropState.x = 0;
+    cropState.y = 0;
+
+    cropImage.src = src;
+
+    zoomRange.min = String(cropState.minScale);
+    zoomRange.max = String(cropState.maxScale);
+    zoomRange.step = "0.01";
+    zoomRange.value = String(cropState.scale);
+
+    updateCropImageTransform();
+    openCropModal();
+  };
+
+  cropState.image.src = src;
 }
 
 function startCropDrag(clientX, clientY) {
@@ -336,10 +375,13 @@ function startCropDrag(clientX, clientY) {
 
 function moveCropDrag(clientX, clientY) {
   if (!cropState.dragging) return;
+
   cropState.x = clientX - cropState.startX;
   cropState.y = clientY - cropState.startY;
+
   updateCropImageTransform();
 }
+
 
 function endCropDrag() {
   cropState.dragging = false;
@@ -417,37 +459,66 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  if (zoomRange) {
-    zoomRange.addEventListener("input", (event) => {
-      cropState.scale = parseFloat(event.target.value);
-      updateCropImageTransform();
-    });
-  }
+ if (zoomRange) {
+  zoomRange.addEventListener("input", (event) => {
+    cropState.scale = clamp(
+      parseFloat(event.target.value),
+      cropState.minScale,
+      cropState.maxScale
+    );
+
+    updateCropImageTransform();
+  });
+}
 
   if (cropCircle) {
-    cropCircle.addEventListener("mousedown", (event) => {
-      startCropDrag(event.clientX, event.clientY);
-    });
+  cropCircle.addEventListener("wheel", (event) => {
+    event.preventDefault();
 
-    window.addEventListener("mousemove", (event) => {
-      moveCropDrag(event.clientX, event.clientY);
-    });
+    const zoomStep = cropState.minScale * 0.08;
 
-    window.addEventListener("mouseup", endCropDrag);
+    if (event.deltaY < 0) {
+      cropState.scale += zoomStep;
+    } else {
+      cropState.scale -= zoomStep;
+    }
 
-    cropCircle.addEventListener("touchstart", (event) => {
-      const touch = event.touches[0];
-      startCropDrag(touch.clientX, touch.clientY);
-    });
+    cropState.scale = clamp(
+      cropState.scale,
+      cropState.minScale,
+      cropState.maxScale
+    );
 
-    window.addEventListener("touchmove", (event) => {
-      if (!cropState.dragging) return;
-      const touch = event.touches[0];
-      moveCropDrag(touch.clientX, touch.clientY);
-    });
+    if (zoomRange) {
+      zoomRange.value = String(cropState.scale);
+    }
 
-    window.addEventListener("touchend", endCropDrag);
-  }
+    updateCropImageTransform();
+  });
+
+  cropCircle.addEventListener("mousedown", (event) => {
+    startCropDrag(event.clientX, event.clientY);
+  });
+
+  window.addEventListener("mousemove", (event) => {
+    moveCropDrag(event.clientX, event.clientY);
+  });
+
+  window.addEventListener("mouseup", endCropDrag);
+
+  cropCircle.addEventListener("touchstart", (event) => {
+    const touch = event.touches[0];
+    startCropDrag(touch.clientX, touch.clientY);
+  });
+
+  window.addEventListener("touchmove", (event) => {
+    if (!cropState.dragging) return;
+    const touch = event.touches[0];
+    moveCropDrag(touch.clientX, touch.clientY);
+  });
+
+  window.addEventListener("touchend", endCropDrag);
+}
 
   window.addEventListener("click", (event) => {
     const editModal = document.getElementById("editModal");
@@ -465,5 +536,136 @@ document.addEventListener("DOMContentLoaded", () => {
   loadProfile();
 });
 
-document.getElementById("avatar").src =
-data.avatar + "?t=" + Date.now();
+async function applyCrop() {
+  if (!cropState.file || !cropState.image) {
+    alert("Выберите изображение");
+    return;
+  }
+
+  const circleSize = 280;
+  const outputSize = 400;
+  const ratio = outputSize / circleSize;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = outputSize;
+  canvas.height = outputSize;
+
+  const ctx = canvas.getContext("2d");
+
+  ctx.beginPath();
+  ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+
+  const scaledWidth = cropState.image.width * cropState.scale;
+  const scaledHeight = cropState.image.height * cropState.scale;
+
+  const left = (circleSize - scaledWidth) / 2 + cropState.x;
+  const top = (circleSize - scaledHeight) / 2 + cropState.y;
+
+  ctx.drawImage(
+    cropState.image,
+    left * ratio,
+    top * ratio,
+    scaledWidth * ratio,
+    scaledHeight * ratio
+  );
+
+  canvas.toBlob(async (blob) => {
+    if (!blob) {
+      alert("Ошибка обработки изображения");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("avatar", blob, "avatar.png");
+
+    try {
+      const res = await fetch("/upload-avatar", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token
+        },
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error("Ошибка загрузки");
+      }
+
+      document.getElementById("avatar").src =
+        data.avatar + "?t=" + Date.now();
+
+      const editAvatar = document.getElementById("editAvatar");
+      if (editAvatar) {
+        editAvatar.value = data.avatar;
+      }
+
+      closeCropModal();
+    } catch (err) {
+      console.error(err);
+      alert("Ошибка загрузки аватара");
+    }
+  }, "image/png");
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function clampCropPosition() {
+  if (!cropState.image) return;
+
+  const circleSize = 280;
+
+  const scaledWidth = cropState.image.width * cropState.scale;
+  const scaledHeight = cropState.image.height * cropState.scale;
+
+  const maxOffsetX = Math.max(0, (scaledWidth - circleSize) / 2);
+  const maxOffsetY = Math.max(0, (scaledHeight - circleSize) / 2);
+
+  cropState.x = clamp(cropState.x, -maxOffsetX, maxOffsetX);
+  cropState.y = clamp(cropState.y, -maxOffsetY, maxOffsetY);
+}
+
+async function removeAvatar() {
+
+  const defaultAvatar = "/images/default-avatar.jpg";
+
+  try {
+
+    const res = await fetch("/update-profile", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify({
+        avatar: defaultAvatar
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Ошибка удаления аватара");
+    }
+
+    document.getElementById("avatar").src =
+      defaultAvatar + "?t=" + Date.now();
+
+    const editAvatar = document.getElementById("editAvatar");
+    if (editAvatar) {
+      editAvatar.value = defaultAvatar;
+    }
+
+  } catch (err) {
+
+    console.error(err);
+    alert("Не удалось удалить аватар");
+
+  }
+
+}

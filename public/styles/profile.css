@@ -427,10 +427,7 @@ body {
   left: 0;
   user-select: none;
   -webkit-user-drag: none;
-  transform-origin: center center;
-  will-change: transform;
-  min-width: 280px;
-  min-height: 280px;
+  pointer-events: none;
 }
 
 .zoom-label {

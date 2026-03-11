@@ -8,7 +8,23 @@
 
 <body>
 
-<header class="navbar">
+<div id="navbar"></div>
+
+<script>
+
+fetch("/html/components/navbar.html")
+.then(res => res.text())
+.then(data => {
+
+document.getElementById("navbar").innerHTML = data
+
+const script = document.createElement("script")
+script.src = "/js/navbar.js"
+document.body.appendChild(script)
+
+})
+
+</script>
 
 <div class="layout">
 

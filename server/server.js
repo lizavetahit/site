@@ -52,10 +52,10 @@ app.post("/register", async (req, res) => {
   try {
     const hash = await bcrypt.hash(password, 10);
 
-    const result = await pool.query(
-      "INSERT INTO users (username,email,password) VALUES ($1,$2,$3) RETURNING id,username,email",
-      [username, email, hash]
-    );
+const result = await pool.query(
+  "INSERT INTO users (username,email,password,avatar) VALUES ($1,$2,$3,$4) RETURNING id,username,email,avatar",
+  [username, email, hash, "/images/default-avatar.jpg"]
+);
 
     res.json(result.rows[0]);
   } catch (err) {
@@ -163,15 +163,15 @@ app.put("/update-profile", async (req, res) => {
 
     const result = await pool.query(
       `UPDATE users
-       SET username=$1,
-           bio=$2,
-           avatar=$3,
-           soundcloud=$4,
-           instagram=$5,
-           twitter=$6,
-           telegram=$7,
-           website=$8
-       WHERE id=$9
+        SET
+        username = COALESCE($1, username),
+        bio = COALESCE($2, bio),
+        avatar = COALESCE($3, avatar),
+        soundcloud = COALESCE($4, soundcloud),
+        instagram = COALESCE($5, instagram),
+        telegram = COALESCE($6, telegram),
+        website = COALESCE($7, website)
+        WHERE id = $8
        RETURNING username,bio,avatar,soundcloud,instagram,twitter,telegram,website`,
       [username, bio, avatar, soundcloud, instagram, twitter, telegram, website, userId]
     );

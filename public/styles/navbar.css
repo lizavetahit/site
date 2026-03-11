@@ -1,0 +1,25 @@
+.navbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px 60px;
+background:#151522;
+border-bottom:1px solid #222;
+}
+
+.logo{
+font-size:22px;
+font-weight:bold;
+color:#c084fc;
+}
+
+nav a{
+margin-left:25px;
+text-decoration:none;
+color:#ddd;
+font-weight:500;
+}
+
+nav a:hover{
+color:white;
+}

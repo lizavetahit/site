@@ -7,31 +7,29 @@
 
   <link rel="stylesheet" href="/styles/style.css" />
   <link rel="stylesheet" href="/styles/profile.css" />
+  <link rel="stylesheet" href="/styles/navbar.css">
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
   />
 </head>
 <body>
-  <header class="navbar">
-    <div class="nav-brand">MusicPlatform</div>
+  <div id="navbar"></div>
+  <script>
 
-    <nav class="nav-links">
-      <a href="/html/index.html">Главная</a>
-      <a href="/html/queue.html">Очередь</a>
-      <a href="/html/submit.html">Скинуть трек</a>
+fetch("/html/components/navbar.html")
+.then(res => res.text())
+.then(data => {
 
-      <span id="authLinks">
-        <a href="/html/login.html">Вход</a>
-        <a href="/html/register.html">Регистрация</a>
-      </span>
+document.getElementById("navbar").innerHTML = data
 
-      <span id="profileLinks" style="display: none;">
-        <a href="/html/profile.html">Профиль</a>
-        <a href="#" onclick="logout(); return false;">Выйти</a>
-      </span>
-    </nav>
-  </header>
+const script = document.createElement("script")
+script.src = "/js/navbar.js"
+document.body.appendChild(script)
+
+})
+
+</script>
 
   <div class="profile-container">
     <div class="profile-card">
@@ -142,6 +140,7 @@
 
       <div class="modal-buttons">
         <button class="main-btn" onclick="applyCrop()">Сохранить аватар</button>
+        <button class="secondary-btn" onclick="removeAvatar()">Удалить аватар</button>
         <button class="secondary-btn" onclick="closeCropModal()">Отмена</button>
       </div>
     </div>

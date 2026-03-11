@@ -4,7 +4,18 @@ if (!token) {
   window.location.href = "/html/login.html";
 }
 
-function setMessage(id, text) {
+let cropState = {
+  file: null,
+  image: null,
+  scale: 1,
+  x: 0,
+  y: 0,
+  dragging: false,
+  startX: 0,
+  startY: 0
+};
+
+function setText(id, text) {
   const el = document.getElementById(id);
   if (el) {
     el.innerText = text || "";
@@ -12,8 +23,9 @@ function setMessage(id, text) {
 }
 
 function clearMessages() {
-  setMessage("profileError", "");
-  setMessage("profileSuccess", "");
+  setText("profileError", "");
+  setText("profileSuccess", "");
+  setText("usernameError", "");
 }
 
 function normalizeUrl(url) {
@@ -33,15 +45,14 @@ function normalizeUrl(url) {
 
 function normalizeTelegram(value) {
   if (!value) return "";
-
   const telegram = value.trim();
 
   if (telegram.startsWith("https://t.me/")) return telegram;
   if (telegram.startsWith("http://t.me/")) return telegram.replace("http://", "https://");
-  if (telegram.startsWith("@")) return "https://t.me/" + telegram.slice(1);
+  if (telegram.startsWith("@")) return `https://t.me/${telegram.slice(1)}`;
   if (telegram.includes("t.me/")) return normalizeUrl(telegram);
 
-  return "https://t.me/" + telegram;
+  return `https://t.me/${telegram}`;
 }
 
 function renderSocialLinks(user) {
@@ -50,38 +61,38 @@ function renderSocialLinks(user) {
 
   socialLinks.innerHTML = "";
 
-  const socials = [
+  const items = [
     {
       value: user.soundcloud,
       href: normalizeUrl(user.soundcloud),
-      icon: "fa-brands fa-soundcloud",
       className: "soundcloud",
+      iconClass: "fa-brands fa-soundcloud",
       title: "SoundCloud"
     },
     {
       value: user.instagram,
       href: normalizeUrl(user.instagram),
-      icon: "fa-brands fa-instagram",
       className: "instagram",
+      iconClass: "fa-brands fa-instagram",
       title: "Instagram"
     },
     {
       value: user.telegram,
       href: normalizeTelegram(user.telegram),
-      icon: "fa-brands fa-telegram",
       className: "telegram",
+      iconClass: "fa-brands fa-telegram",
       title: "Telegram"
     },
     {
       value: user.website,
       href: normalizeUrl(user.website),
-      icon: "fa-solid fa-globe",
       className: "website",
+      iconClass: "fa-solid fa-globe",
       title: "Website"
     }
   ];
 
-  socials.forEach((item) => {
+  items.forEach((item) => {
     if (!item.value) return;
 
     const link = document.createElement("a");
@@ -90,9 +101,10 @@ function renderSocialLinks(user) {
     link.rel = "noopener noreferrer";
     link.className = `social-link ${item.className}`;
     link.title = item.title;
+    link.setAttribute("aria-label", item.title);
 
     const icon = document.createElement("i");
-    icon.className = item.icon;
+    icon.className = item.iconClass;
 
     link.appendChild(icon);
     socialLinks.appendChild(link);
@@ -115,33 +127,27 @@ async function loadProfile() {
 
     const user = await res.json();
 
-    document.getElementById("username").innerText = user.username || "";
-    document.getElementById("email").innerText = user.email || "";
-    document.getElementById("bio").innerText = user.bio || "";
+    setText("username", user.username);
+    setText("email", user.email);
+    setText("bio", user.bio || "");
+
     document.getElementById("avatar").src = user.avatar || "https://i.pravatar.cc/150";
 
-    const editUsername = document.getElementById("editUsername");
-    const editBio = document.getElementById("editBio");
-    const editAvatar = document.getElementById("editAvatar");
-    const editSoundcloud = document.getElementById("editSoundcloud");
-    const editInstagram = document.getElementById("editInstagram");
-    const editTelegram = document.getElementById("editTelegram");
-    const editWebsite = document.getElementById("editWebsite");
-
-    if (editUsername) editUsername.value = user.username || "";
-    if (editBio) editBio.value = user.bio || "";
-    if (editAvatar) editAvatar.value = user.avatar || "";
-    if (editSoundcloud) editSoundcloud.value = user.soundcloud || "";
-    if (editInstagram) editInstagram.value = user.instagram || "";
-    if (editTelegram) editTelegram.value = user.telegram || "";
-    if (editWebsite) editWebsite.value = user.website || "";
+    document.getElementById("editUsername").value = user.username || "";
+    document.getElementById("editBio").value = user.bio || "";
+    document.getElementById("editAvatar").value = user.avatar || "";
+    document.getElementById("editSoundcloud").value = user.soundcloud || "";
+    document.getElementById("editInstagram").value = user.instagram || "";
+    document.getElementById("editTwitter").value = user.twitter || "";
+    document.getElementById("editTelegram").value = user.telegram || "";
+    document.getElementById("editWebsite").value = user.website || "";
 
     renderSocialLinks(user);
-    loadPosts();
-    loadTracks();
+    await loadPosts();
+    await loadTracks();
   } catch (error) {
     console.error(error);
-    setMessage("profileError", "Не удалось загрузить профиль");
+    setText("profileError", "Не удалось загрузить профиль");
   }
 }
 
@@ -156,34 +162,33 @@ function closeEdit() {
 }
 
 function editUsername() {
-  const box = document.getElementById("usernameEditBox");
-  const input = document.getElementById("usernameInput");
+  const editBox = document.getElementById("usernameEditBox");
+  const usernameInput = document.getElementById("usernameInput");
   const username = document.getElementById("username");
 
-  if (!box || !input || !username) return;
+  setText("usernameError", "");
 
-  input.value = username.innerText.trim();
-  box.classList.remove("hidden");
-  input.focus();
+  if (editBox && usernameInput && username) {
+    usernameInput.value = username.innerText.trim();
+    editBox.classList.remove("hidden");
+    usernameInput.focus();
+  }
 }
 
 function cancelUsernameEdit() {
-  const box = document.getElementById("usernameEditBox");
-  if (box) box.classList.add("hidden");
+  const editBox = document.getElementById("usernameEditBox");
+  setText("usernameError", "");
+  if (editBox) editBox.classList.add("hidden");
 }
 
 async function saveUsername() {
-  clearMessages();
+  const username = document.getElementById("usernameInput").value.trim();
 
-  const input = document.getElementById("usernameInput");
-  const box = document.getElementById("usernameEditBox");
-
-  if (!input) return;
-
-  const username = input.value.trim();
+  setText("usernameError", "");
+  setText("profileError", "");
 
   if (!username) {
-    setMessage("profileError", "Ник не может быть пустым");
+    setText("usernameError", "Ник не может быть пустым");
     return;
   }
 
@@ -201,39 +206,37 @@ async function saveUsername() {
 
     if (!res.ok) {
       if (data.error === "username_taken") {
-        setMessage("profileError", "Этот никнейм уже используется");
+        setText("usernameError", "Этот никнейм уже используется");
         return;
       }
 
-      setMessage("profileError", data.error || "Ошибка сохранения ника");
+      setText("usernameError", data.error || "Не удалось изменить ник");
       return;
     }
 
     document.getElementById("username").innerText = data.username || username;
     document.getElementById("editUsername").value = data.username || username;
-
-    if (box) box.classList.add("hidden");
-
-    setMessage("profileSuccess", "Ник успешно обновлён");
+    cancelUsernameEdit();
   } catch (error) {
     console.error(error);
-    setMessage("profileError", "Не удалось обновить ник");
+    setText("usernameError", "Не удалось изменить ник");
   }
 }
 
 async function saveProfile() {
   clearMessages();
 
-  const username = document.getElementById("editUsername")?.value.trim() || "";
-  const bio = document.getElementById("editBio")?.value.trim() || "";
-  const avatar = document.getElementById("editAvatar")?.value || "";
-  const soundcloud = document.getElementById("editSoundcloud")?.value.trim() || "";
-  const instagram = document.getElementById("editInstagram")?.value.trim() || "";
-  const telegram = document.getElementById("editTelegram")?.value.trim() || "";
-  const website = document.getElementById("editWebsite")?.value.trim() || "";
+  const username = document.getElementById("editUsername").value.trim();
+  const bio = document.getElementById("editBio").value.trim();
+  const avatar = document.getElementById("editAvatar").value || "";
+  const soundcloud = document.getElementById("editSoundcloud").value.trim();
+  const instagram = document.getElementById("editInstagram").value.trim();
+  const twitter = document.getElementById("editTwitter").value.trim();
+  const telegram = document.getElementById("editTelegram").value.trim();
+  const website = document.getElementById("editWebsite").value.trim();
 
   if (!username) {
-    setMessage("profileError", "Ник не может быть пустым");
+    setText("profileError", "Ник не может быть пустым");
     return;
   }
 
@@ -250,6 +253,7 @@ async function saveProfile() {
         avatar,
         soundcloud,
         instagram,
+        twitter,
         telegram,
         website
       })
@@ -259,66 +263,89 @@ async function saveProfile() {
 
     if (!res.ok) {
       if (data.error === "username_taken") {
-        setMessage("profileError", "Этот никнейм уже используется");
+        setText("profileError", "Этот никнейм уже используется");
         return;
       }
 
-      setMessage("profileError", data.error || "Ошибка сохранения профиля");
+      setText("profileError", data.error || "Не удалось сохранить профиль");
       return;
     }
 
     closeEdit();
-    setMessage("profileSuccess", "Профиль успешно сохранён");
-    loadProfile();
+    setText("profileSuccess", "Профиль сохранён");
+    await loadProfile();
   } catch (error) {
     console.error(error);
-    setMessage("profileError", "Не удалось сохранить профиль");
+    setText("profileError", "Не удалось сохранить профиль");
   }
 }
 
-async function uploadAvatar(file) {
-  if (!file) return;
-
-  clearMessages();
-
-  try {
-    const formData = new FormData();
-    formData.append("avatar", file);
-
-    const uploadRes = await fetch("/upload-avatar", {
-      method: "POST",
-      body: formData
-    });
-
-    const uploadData = await uploadRes.json();
-
-    if (!uploadRes.ok || !uploadData.avatar) {
-      throw new Error("Ошибка загрузки файла");
-    }
-
-    const saveRes = await fetch("/update-profile", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token
-      },
-      body: JSON.stringify({ avatar: uploadData.avatar })
-    });
-
-    const saveData = await saveRes.json();
-
-    if (!saveRes.ok) {
-      throw new Error(saveData.error || "Ошибка сохранения аватара");
-    }
-
-    document.getElementById("avatar").src = uploadData.avatar;
-    document.getElementById("editAvatar").value = uploadData.avatar;
-    setMessage("profileSuccess", "Аватар обновлён");
-  } catch (error) {
-    console.error(error);
-    setMessage("profileError", "Не удалось обновить аватар");
-  }
+function openCropModal() {
+  const cropModal = document.getElementById("cropModal");
+  if (cropModal) cropModal.style.display = "block";
 }
+
+function closeCropModal() {
+  const cropModal = document.getElementById("cropModal");
+  const avatarInput = document.getElementById("avatarInput");
+
+  if (cropModal) cropModal.style.display = "none";
+  if (avatarInput) avatarInput.value = "";
+
+  cropState = {
+    file: null,
+    image: null,
+    scale: 1,
+    x: 0,
+    y: 0,
+    dragging: false,
+    startX: 0,
+    startY: 0
+  };
+}
+
+function updateCropImageTransform() {
+  const cropImage = document.getElementById("cropImage");
+  if (!cropImage) return;
+
+  cropImage.style.transform = `translate(${cropState.x}px, ${cropState.y}px) scale(${cropState.scale})`;
+}
+
+function initCropImage(src, file) {
+  const cropImage = document.getElementById("cropImage");
+  const zoomRange = document.getElementById("zoomRange");
+
+  cropState.file = file;
+  cropState.image = new Image();
+  cropState.image.src = src;
+  cropState.scale = 1;
+  cropState.x = 0;
+  cropState.y = 0;
+
+  cropImage.src = src;
+  zoomRange.value = "1";
+  updateCropImageTransform();
+  openCropModal();
+}
+
+function startCropDrag(clientX, clientY) {
+  cropState.dragging = true;
+  cropState.startX = clientX - cropState.x;
+  cropState.startY = clientY - cropState.y;
+}
+
+function moveCropDrag(clientX, clientY) {
+  if (!cropState.dragging) return;
+  cropState.x = clientX - cropState.startX;
+  cropState.y = clientY - cropState.startY;
+  updateCropImageTransform();
+}
+
+function endCropDrag() {
+  cropState.dragging = false;
+}
+
+ 
 
 async function loadPosts() {
   const container = document.getElementById("postsContainer");
@@ -374,20 +401,69 @@ function addTrack() {
 
 document.addEventListener("DOMContentLoaded", () => {
   const avatarInput = document.getElementById("avatarInput");
+  const zoomRange = document.getElementById("zoomRange");
+  const cropCircle = document.getElementById("cropCircle");
 
   if (avatarInput) {
-    avatarInput.addEventListener("change", function () {
-      const file = this.files[0];
-      uploadAvatar(file);
+    avatarInput.addEventListener("change", (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        initCropImage(e.target.result, file);
+      };
+      reader.readAsDataURL(file);
     });
   }
 
-  window.addEventListener("click", function (event) {
-    const modal = document.getElementById("editModal");
-    if (event.target === modal) {
+  if (zoomRange) {
+    zoomRange.addEventListener("input", (event) => {
+      cropState.scale = parseFloat(event.target.value);
+      updateCropImageTransform();
+    });
+  }
+
+  if (cropCircle) {
+    cropCircle.addEventListener("mousedown", (event) => {
+      startCropDrag(event.clientX, event.clientY);
+    });
+
+    window.addEventListener("mousemove", (event) => {
+      moveCropDrag(event.clientX, event.clientY);
+    });
+
+    window.addEventListener("mouseup", endCropDrag);
+
+    cropCircle.addEventListener("touchstart", (event) => {
+      const touch = event.touches[0];
+      startCropDrag(touch.clientX, touch.clientY);
+    });
+
+    window.addEventListener("touchmove", (event) => {
+      if (!cropState.dragging) return;
+      const touch = event.touches[0];
+      moveCropDrag(touch.clientX, touch.clientY);
+    });
+
+    window.addEventListener("touchend", endCropDrag);
+  }
+
+  window.addEventListener("click", (event) => {
+    const editModal = document.getElementById("editModal");
+    const cropModal = document.getElementById("cropModal");
+
+    if (event.target === editModal) {
       closeEdit();
+    }
+
+    if (event.target === cropModal) {
+      closeCropModal();
     }
   });
 
   loadProfile();
 });
+
+document.getElementById("avatar").src =
+data.avatar + "?t=" + Date.now();

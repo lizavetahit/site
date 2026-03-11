@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Профиль</title>
 
+  <link rel="stylesheet" href="/styles/style.css" />
   <link rel="stylesheet" href="/styles/profile.css" />
   <link
     rel="stylesheet"
@@ -12,18 +13,40 @@
   />
 </head>
 <body>
+  <header class="navbar">
+    <div class="nav-brand">MusicPlatform</div>
+
+    <nav class="nav-links">
+      <a href="/html/index.html">Главная</a>
+      <a href="/html/queue.html">Очередь</a>
+      <a href="/html/submit.html">Скинуть трек</a>
+
+      <span id="authLinks">
+        <a href="/html/login.html">Вход</a>
+        <a href="/html/register.html">Регистрация</a>
+      </span>
+
+      <span id="profileLinks" style="display: none;">
+        <a href="/html/profile.html">Профиль</a>
+        <a href="#" onclick="logout(); return false;">Выйти</a>
+      </span>
+    </nav>
+  </header>
+
   <div class="profile-container">
     <div class="profile-card">
+      <div id="socialLinks" class="social-links top-right"></div>
+
       <div class="profile-header">
         <div class="avatar-wrapper">
           <img
             id="avatar"
             class="avatar"
             src="https://i.pravatar.cc/150"
-            alt="Аватар"
+            alt="Аватар профиля"
           />
 
-          <label class="avatar-upload" for="avatarInput" title="Изменить аватар">
+          <label for="avatarInput" class="avatar-upload" title="Изменить аватар">
             <i class="fa-solid fa-camera"></i>
           </label>
           <input id="avatarInput" type="file" accept="image/*" hidden />
@@ -33,7 +56,7 @@
           <div class="username-row">
             <h2 id="username"></h2>
 
-            <button class="icon-btn edit-icon-btn" onclick="editUsername()" title="Изменить ник">
+            <button class="icon-btn edit-username-btn" onclick="editUsername()" title="Изменить ник">
               <i class="fa-solid fa-pen"></i>
             </button>
           </div>
@@ -48,17 +71,17 @@
             </button>
           </div>
 
+          <p id="usernameError" class="field-error"></p>
+
           <p id="email"></p>
           <p id="bio"></p>
 
-          <div id="socialLinks" class="social-links"></div>
-
-          <div class="social-buttons">
-            <button onclick="openEdit()">Редактировать профиль</button>
+          <div class="profile-actions">
+            <button class="main-btn" onclick="openEdit()">Редактировать профиль</button>
           </div>
 
-          <p id="profileError" class="error-text"></p>
-          <p id="profileSuccess" class="success-text"></p>
+          <p id="profileError" class="field-error"></p>
+          <p id="profileSuccess" class="field-success"></p>
         </div>
       </div>
     </div>
@@ -67,7 +90,7 @@
       <section class="posts-section">
         <div class="section-header">
           <h3>Посты</h3>
-          <button onclick="createPost()">＋ Пост</button>
+          <button class="secondary-btn" onclick="createPost()">＋ Пост</button>
         </div>
         <div id="postsContainer"></div>
       </section>
@@ -75,7 +98,7 @@
       <section class="tracks-section">
         <div class="section-header">
           <h3>Треки</h3>
-          <button onclick="addTrack()">＋ Трек</button>
+          <button class="secondary-btn" onclick="addTrack()">＋ Трек</button>
         </div>
         <div id="tracksContainer"></div>
       </section>
@@ -87,22 +110,44 @@
       <h3>Редактировать профиль</h3>
 
       <input id="editUsername" type="text" placeholder="Ник" />
-      <textarea id="editBio" placeholder="О себе"></textarea>
+      <textarea id="editBio" rows="4" placeholder="О себе"></textarea>
 
       <input id="editAvatar" type="hidden" />
 
       <input id="editSoundcloud" type="text" placeholder="Ссылка на SoundCloud" />
       <input id="editInstagram" type="text" placeholder="Ссылка на Instagram" />
+      <input id="editTwitter" type="hidden" />
       <input id="editTelegram" type="text" placeholder="Telegram username или ссылка" />
       <input id="editWebsite" type="text" placeholder="Ссылка на Website" />
 
       <div class="modal-buttons">
-        <button onclick="saveProfile()">Сохранить</button>
+        <button class="main-btn" onclick="saveProfile()">Сохранить</button>
         <button class="secondary-btn" onclick="closeEdit()">Отмена</button>
       </div>
     </div>
   </div>
 
+  <div id="cropModal" class="modal">
+    <div class="modal-content crop-modal-content">
+      <h3>Настройте аватар</h3>
+
+      <div class="crop-stage">
+        <div id="cropCircle" class="crop-circle">
+          <img id="cropImage" alt="Предпросмотр аватара" draggable="false" />
+        </div>
+      </div>
+
+      <label class="zoom-label" for="zoomRange">Масштаб</label>
+      <input id="zoomRange" type="range" min="0.1" max="4" step="0.01" value="1" />
+
+      <div class="modal-buttons">
+        <button class="main-btn" onclick="applyCrop()">Сохранить аватар</button>
+        <button class="secondary-btn" onclick="closeCropModal()">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/navbar.js"></script>
   <script src="/js/profile.js"></script>
 </body>
 </html>

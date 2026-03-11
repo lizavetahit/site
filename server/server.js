@@ -6,17 +6,15 @@ const pool = require("../database/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
+const sharp = require("sharp");
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "public/uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024
   }
 });
 
-const upload = multer({ storage: storage });
 const app = express();
 
 app.use(cors());
@@ -82,7 +80,9 @@ app.post("/login", async (req, res) => {
       return res.status(400).send("Wrong password");
     }
 
-    const token = jwt.sign({ id: user.rows[0].id }, "SECRET_KEY", { expiresIn: "7d" });
+    const token = jwt.sign({ id: user.rows[0].id }, "SECRET_KEY", {
+      expiresIn: "7d"
+    });
 
     res.json({ token });
   } catch (err) {
@@ -183,18 +183,39 @@ app.put("/update-profile", async (req, res) => {
   }
 });
 
-app.post("/upload-avatar", upload.single("avatar"), (req, res) => {
+app.post("/upload-avatar", upload.single("avatar"), async (req, res) => {
+
   try {
+
+    const userId = getUserIdFromToken(req);
+
     if (!req.file) {
-      return res.status(400).json({ error: "no_file_uploaded" });
+      return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const avatarPath = "/uploads/" + req.file.filename;
-    res.json({ avatar: avatarPath });
+    const avatarPath = `public/uploads/avatars/user-${userId}.webp`;
+
+    await sharp(req.file.buffer)
+      .resize(400, 400, { fit: "cover" })
+      .webp({ quality: 90 })
+      .toFile(avatarPath);
+
+    const avatarUrl = `/uploads/avatars/user-${userId}.webp`;
+
+    await pool.query(
+      "UPDATE users SET avatar=$1 WHERE id=$2",
+      [avatarUrl, userId]
+    );
+
+    res.json({ avatar: avatarUrl });
+
   } catch (err) {
+
     console.error(err);
-    res.status(500).json({ error: "upload_error" });
+    res.status(500).json({ error: "Avatar upload failed" });
+
   }
+
 });
 
 app.listen(3000, () => {

@@ -116,9 +116,7 @@ app.get("/profile", async (req, res) => {
   }
 });
 
-app.get("/my-posts", async (req, res) => {
-  res.json([{ content: "Мой первый пост" }, { content: "Работаю над новым треком" }]);
-});
+
 
 app.get("/my-tracks", async (req, res) => {
   res.json([{ title: "My track 1" }, { title: "My track 2" }]);
@@ -247,32 +245,36 @@ const content = req.body.content || "";
 let mediaUrl = null;
 let mediaType = "text";
 
-if(req.file){
+if (req.file) {
 
-if(req.file.mimetype.startsWith("image")){
+  const timestamp = Date.now();
 
-const path = `public/uploads/posts/images/post-${Date.now()}.webp`;
+  if (req.file.mimetype.startsWith("image")) {
 
-await sharp(req.file.buffer)
-.resize(1200)
-.webp({quality:90})
-.toFile(path);
+    const fileName = `post-${timestamp}.webp`;
+    const filePath = `public/uploads/posts/images/${fileName}`;
 
-mediaUrl = path.replace("public","");
-mediaType = "image";
+    await sharp(req.file.buffer)
+      .resize(1200)
+      .webp({ quality: 90 })
+      .toFile(filePath);
 
-}
+    mediaUrl = `/uploads/posts/images/${fileName}`;
+    mediaType = "image";
 
-else if(req.file.mimetype.startsWith("video")){
+  }
 
-const path = `public/uploads/posts/videos/post-${Date.now()}.mp4`;
+  else if (req.file.mimetype.startsWith("video")) {
 
-require("fs").writeFileSync(path, req.file.buffer);
+    const fileName = `post-${timestamp}.mp4`;
+    const filePath = `public/uploads/posts/videos/${fileName}`;
 
-mediaUrl = path.replace("public","");
-mediaType = "video";
+    require("fs").writeFileSync(filePath, req.file.buffer);
 
-}
+    mediaUrl = `/uploads/posts/videos/${fileName}`;
+    mediaType = "video";
+
+  }
 
 }
 
@@ -316,6 +318,20 @@ res.status(500).send("error");
 }
 
 });
+
+app.get("/feed", async (req,res)=>{
+
+const posts = await pool.query(`
+SELECT posts.*, users.username, users.avatar
+FROM posts
+JOIN users ON users.id = posts.user_id
+ORDER BY created_at DESC
+LIMIT 50
+`)
+
+res.json(posts.rows)
+
+})
 
 app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");

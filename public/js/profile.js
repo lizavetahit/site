@@ -499,7 +499,12 @@ document.getElementById("postText").value=""
 document.getElementById("postMedia").value=""
 document.getElementById("mediaPreview").innerHTML=""
 
-loadPosts()
+await loadPosts()
+
+if(posts.length === 0){
+container.innerHTML = "<p style='opacity:.6'>У вас пока нет постов</p>"
+return
+}
 
 }catch(err){
 

@@ -403,26 +403,44 @@ function endCropDrag() {
 
  
 
-async function loadPosts() {
-  const container = document.getElementById("postsContainer");
-  if (!container) return;
+async function loadPosts(){
 
-  try {
-    const res = await fetch("/my-posts");
-    const posts = await res.json();
+const res = await fetch("/my-posts",{
+headers:{
+Authorization:"Bearer "+token
+}
+})
 
-    container.innerHTML = "";
+const posts = await res.json()
 
-    posts.forEach((post) => {
-      const card = document.createElement("div");
-      card.className = "post-card";
-      card.innerText = post.content;
-      container.appendChild(card);
-    });
-  } catch (error) {
-    console.error(error);
-    container.innerHTML = '<div class="post-card">Не удалось загрузить посты</div>';
-  }
+const container = document.getElementById("postsContainer")
+
+container.innerHTML=""
+
+posts.forEach(post=>{
+
+let mediaHTML=""
+
+if(post.media_type==="image"){
+mediaHTML=`<img src="${post.media_url}" class="post-media">`
+}
+
+if(post.media_type==="video"){
+mediaHTML=`<video controls class="post-media"><source src="${post.media_url}"></video>`
+}
+
+container.innerHTML += `
+<div class="post-card">
+
+<p>${post.content}</p>
+
+${mediaHTML}
+
+</div>
+`
+
+})
+
 }
 
 async function loadTracks() {
@@ -447,8 +465,49 @@ async function loadTracks() {
   }
 }
 
-function createPost() {
-  window.location.href = "/html/create-post.html";
+async function createPost(){
+
+const text = document.getElementById("postText").value
+const file = document.getElementById("postMedia").files[0]
+
+const formData = new FormData()
+
+formData.append("content", text)
+
+if(file){
+formData.append("media", file)
+}
+
+try{
+
+const res = await fetch("/create-post",{
+method:"POST",
+headers:{
+Authorization:"Bearer "+token
+},
+body:formData
+})
+
+if(!res.ok){
+alert("Ошибка публикации")
+return
+}
+
+closePostModal()
+
+document.getElementById("postText").value=""
+document.getElementById("postMedia").value=""
+document.getElementById("mediaPreview").innerHTML=""
+
+loadPosts()
+
+}catch(err){
+
+console.error(err)
+alert("Не удалось опубликовать пост")
+
+}
+
 }
 
 function addTrack() {
@@ -754,4 +813,140 @@ document.getElementById("settingsModal").style.display="block"
 
 function closeSettings(){
 document.getElementById("settingsModal").style.display="none"
+}
+
+function openPostModal(){
+
+document.getElementById("postModal").style.display="block"
+
+}
+
+function closePostModal(){
+
+document.getElementById("postModal").style.display="none"
+
+document.getElementById("postText").value=""
+
+document.getElementById("postMedia").value=""
+
+document.getElementById("mediaPreview").innerHTML=""
+
+}
+
+document.getElementById("postMedia").addEventListener("change",(event)=>{
+
+const file = event.target.files[0]
+
+const preview = document.getElementById("mediaPreview")
+
+preview.innerHTML=""
+
+if(!file) return
+
+if(file.type.startsWith("image")){
+
+const img = document.createElement("img")
+
+img.src = URL.createObjectURL(file)
+
+preview.appendChild(img)
+
+}
+
+if(file.type.startsWith("video")){
+
+const video = document.createElement("video")
+
+video.controls=true
+
+video.src = URL.createObjectURL(file)
+
+preview.appendChild(video)
+
+}
+
+})
+
+const postMediaInput = document.getElementById("postMedia")
+
+if(postMediaInput){
+
+postMediaInput.addEventListener("change",(event)=>{
+
+const file = event.target.files[0]
+
+const preview = document.getElementById("mediaPreview")
+
+preview.innerHTML=""
+
+if(!file) return
+
+if(file.type.startsWith("image")){
+
+const img = document.createElement("img")
+
+img.src = URL.createObjectURL(file)
+
+img.className="post-preview"
+
+preview.appendChild(img)
+
+}
+
+if(file.type.startsWith("video")){
+
+const video = document.createElement("video")
+
+video.controls=true
+video.src = URL.createObjectURL(file)
+video.className="post-preview"
+
+preview.appendChild(video)
+
+}
+
+})
+
+}
+
+function openPostModal(){
+
+document.getElementById("postModal").style.display="block"
+
+}
+
+function closePostModal(){
+
+document.getElementById("postModal").style.display="none"
+
+}
+
+const mediaInput = document.getElementById("postMedia")
+
+if(mediaInput){
+
+mediaInput.addEventListener("change",(event)=>{
+
+const file = event.target.files[0]
+
+const preview = document.getElementById("mediaPreview")
+
+preview.innerHTML=""
+
+if(!file) return
+
+if(file.type.startsWith("image")){
+
+preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="post-preview">`
+
+}
+
+if(file.type.startsWith("video")){
+
+preview.innerHTML = `<video controls class="post-preview"><source src="${URL.createObjectURL(file)}"></video>`
+
+}
+
+})
+
 }

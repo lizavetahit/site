@@ -11,7 +11,14 @@ const sharp = require("sharp");
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024
+    fileSize: 20 * 1024 * 1024
+  }
+});
+
+const postUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 200 * 1024 * 1024
   }
 });
 
@@ -225,6 +232,88 @@ app.post("/upload-avatar", upload.single("avatar"), async (req, res) => {
     res.status(500).json({ error: "Avatar upload failed" });
 
   }
+
+});
+
+
+
+app.post("/create-post", postUpload.single("media"), async (req,res)=>{
+
+try{
+
+const userId = getUserIdFromToken(req);
+
+const content = req.body.content || "";
+let mediaUrl = null;
+let mediaType = "text";
+
+if(req.file){
+
+if(req.file.mimetype.startsWith("image")){
+
+const path = `public/uploads/posts/images/post-${Date.now()}.webp`;
+
+await sharp(req.file.buffer)
+.resize(1200)
+.webp({quality:90})
+.toFile(path);
+
+mediaUrl = path.replace("public","");
+mediaType = "image";
+
+}
+
+else if(req.file.mimetype.startsWith("video")){
+
+const path = `public/uploads/posts/videos/post-${Date.now()}.mp4`;
+
+require("fs").writeFileSync(path, req.file.buffer);
+
+mediaUrl = path.replace("public","");
+mediaType = "video";
+
+}
+
+}
+
+const result = await pool.query(
+`INSERT INTO posts(user_id,content,media_url,media_type)
+VALUES($1,$2,$3,$4)
+RETURNING *`,
+[userId,content,mediaUrl,mediaType]
+);
+
+res.json(result.rows[0]);
+
+}catch(err){
+
+console.error(err);
+res.status(500).json({error:"post_create_failed"});
+
+}
+
+});
+
+app.get("/my-posts", async (req,res)=>{
+
+try{
+
+const userId = getUserIdFromToken(req);
+
+const posts = await pool.query(
+`SELECT * FROM posts
+WHERE user_id=$1
+ORDER BY created_at DESC`,
+[userId]
+);
+
+res.json(posts.rows);
+
+}catch(err){
+
+res.status(500).send("error");
+
+}
 
 });
 

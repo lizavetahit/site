@@ -107,13 +107,15 @@ document.body.appendChild(script)
 <i class="fa-solid fa-at"></i> Упоминания
 </button>
 
+
+
 </div>
 
 <div id="postsTab" class="tab-content active">
 
 <div class="section-header">
 <h3>Посты</h3>
-<button class="secondary-btn" onclick="createPost()">＋ Пост</button>
+<button class="secondary-btn" onclick="openPostModal()">＋ Пост</button>
 </div>
 
 <div id="postsContainer"></div>
@@ -213,6 +215,41 @@ document.body.appendChild(script)
 <button class="main-btn" onclick="changePassword()">Изменить пароль</button>
 
 <button class="secondary-btn" onclick="closeSettings()">Закрыть</button>
+
+</div>
+
+</div>
+
+</div>
+
+<div id="postModal" class="modal">
+
+<div class="modal-content">
+
+<h3>Новый пост</h3>
+
+<textarea
+id="postText"
+rows="4"
+maxlength="500"
+placeholder="Что нового?"
+></textarea>
+
+<input
+type="file"
+id="postMedia"
+accept="image/*,video/*"
+/>
+
+<div id="mediaPreview"></div>
+
+<div class="modal-buttons">
+
+<button class="main-btn" onclick="createPost()">Опубликовать</button>
+
+<button class="secondary-btn" onclick="closePostModal()">
+Отмена
+</button>
 
 </div>
 

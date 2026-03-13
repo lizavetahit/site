@@ -501,11 +501,6 @@ document.getElementById("mediaPreview").innerHTML=""
 
 await loadPosts()
 
-if(posts.length === 0){
-container.innerHTML = "<p style='opacity:.6'>У вас пока нет постов</p>"
-return
-}
-
 }catch(err){
 
 console.error(err)
@@ -838,39 +833,7 @@ document.getElementById("mediaPreview").innerHTML=""
 
 }
 
-document.getElementById("postMedia").addEventListener("change",(event)=>{
 
-const file = event.target.files[0]
-
-const preview = document.getElementById("mediaPreview")
-
-preview.innerHTML=""
-
-if(!file) return
-
-if(file.type.startsWith("image")){
-
-const img = document.createElement("img")
-
-img.src = URL.createObjectURL(file)
-
-preview.appendChild(img)
-
-}
-
-if(file.type.startsWith("video")){
-
-const video = document.createElement("video")
-
-video.controls=true
-
-video.src = URL.createObjectURL(file)
-
-preview.appendChild(video)
-
-}
-
-})
 
 const postMediaInput = document.getElementById("postMedia")
 
@@ -926,32 +889,37 @@ document.getElementById("postModal").style.display="none"
 
 }
 
-const mediaInput = document.getElementById("postMedia")
+const postCropArea = document.getElementById("postCropArea")
+const postCropImage = document.getElementById("postCropImage")
+const postZoom = document.getElementById("postZoom")
+const postZoomLabel = document.getElementById("postZoomLabel")
 
-if(mediaInput){
+let postScale = 1
 
-mediaInput.addEventListener("change",(event)=>{
+postMediaInput.addEventListener("change", e => {
 
-const file = event.target.files[0]
-
-const preview = document.getElementById("mediaPreview")
-
-preview.innerHTML=""
-
+const file = e.target.files[0]
 if(!file) return
 
-if(file.type.startsWith("image")){
+const reader = new FileReader()
 
-preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="post-preview">`
+reader.onload = function(event){
+
+postCropImage.src = event.target.result
+
+postCropArea.classList.remove("hidden")
+postZoom.classList.remove("hidden")
+postZoomLabel.classList.remove("hidden")
 
 }
 
-if(file.type.startsWith("video")){
-
-preview.innerHTML = `<video controls class="post-preview"><source src="${URL.createObjectURL(file)}"></video>`
-
-}
+reader.readAsDataURL(file)
 
 })
 
-}
+postZoom.addEventListener("input", e => {
+
+postScale = e.target.value
+postCropImage.style.transform = `scale(${postScale})`
+
+})

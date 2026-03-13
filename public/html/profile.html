@@ -29,6 +29,7 @@ document.body.appendChild(script)
 
 })
 
+
 </script>
 
   <div class="profile-container">
@@ -242,6 +243,21 @@ accept="image/*,video/*"
 />
 
 <div id="mediaPreview"></div>
+
+<div id="postCropArea" class="post-crop-area hidden">
+  <img id="postCropImage">
+</div>
+
+<label class="zoom-label hidden" id="postZoomLabel">Масштаб</label>
+<input
+id="postZoom"
+class="hidden"
+type="range"
+min="1"
+max="3"
+step="0.01"
+value="1"
+/>
 
 <div class="modal-buttons">
 

@@ -278,6 +278,29 @@ if (req.file) {
 
 }
 
+app.delete("/delete-post/:id", async (req,res)=>{
+
+try{
+
+const userId = getUserIdFromToken(req)
+const postId = req.params.id
+
+await pool.query(
+"DELETE FROM posts WHERE id=$1 AND user_id=$2",
+[postId,userId]
+)
+
+res.json({success:true})
+
+}catch(err){
+
+console.error(err)
+res.status(500).send("delete_error")
+
+}
+
+})
+
 const result = await pool.query(
 `INSERT INTO posts(user_id,content,media_url,media_type)
 VALUES($1,$2,$3,$4)
@@ -303,9 +326,16 @@ try{
 const userId = getUserIdFromToken(req);
 
 const posts = await pool.query(
-`SELECT * FROM posts
-WHERE user_id=$1
-ORDER BY created_at DESC`,
+`
+SELECT 
+posts.*,
+users.username,
+users.avatar
+FROM posts
+JOIN users ON posts.user_id = users.id
+WHERE posts.user_id=$1
+ORDER BY posts.created_at DESC
+`,
 [userId]
 );
 

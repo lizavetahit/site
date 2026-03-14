@@ -96,7 +96,7 @@ document.body.appendChild(script)
 
 <div class="profile-tabs">
 
-<button class="tab-btn active" onclick="switchTab('posts')">
+<button class="tab-btn" onclick="switchTab('posts')">
 <i class="fa-solid fa-table-cells"></i> Посты
 </button>
 
@@ -194,9 +194,6 @@ document.body.appendChild(script)
     </div>
   </div>
 
-  <script src="/js/navbar.js"></script>
-  <script src="/js/profile.js"></script>
-
   <div id="settingsModal" class="modal">
 
 <div class="modal-content">
@@ -225,46 +222,67 @@ document.body.appendChild(script)
 
 <div id="postModal" class="modal">
 
-<div class="modal-content">
+<div class="post-editor">
 
-<h3>Новый пост</h3>
+<div class="post-editor-header">
+
+<h3>Создать публикацию</h3>
+
+<button onclick="closePostModal()" class="icon-btn">
+<i class="fa-solid fa-xmark"></i>
+</button>
+
+</div>
+
 
 <textarea
 id="postText"
-rows="4"
 maxlength="500"
 placeholder="Что нового?"
 ></textarea>
+
 
 <input
 type="file"
 id="postMedia"
 accept="image/*,video/*"
-/>
+hidden
+>
 
-<div id="mediaPreview"></div>
+<div class="editor-preview hidden" id="editorPreview">
 
-<div id="postCropArea" class="post-crop-area hidden">
-  <img id="postCropImage">
+<img id="editorImage">
+
+<video id="editorVideo" controls class="hidden"></video>
+
 </div>
 
-<label class="zoom-label hidden" id="postZoomLabel">Масштаб</label>
+<div class="editor-controls">
+
+<button type="button" onclick="selectMedia()" class="secondary-btn">
+<i class="fa-solid fa-image"></i> Добавить фото
+</button>
+
+<button type="button" onclick="removeMedia()" class="secondary-btn">
+Удалить медиа
+</button>
+
 <input
-id="postZoom"
-class="hidden"
 type="range"
+id="zoomSlider"
 min="1"
 max="3"
 step="0.01"
-value="1"
+class="hidden"
 />
+
+</div>
+
 
 <div class="modal-buttons">
 
-<button class="main-btn" onclick="createPost()">Опубликовать</button>
-
-<button class="secondary-btn" onclick="closePostModal()">
-Отмена
+<button onclick="publishPost()" class="main-btn">
+Опубликовать
 </button>
 
 </div>
@@ -272,6 +290,14 @@ value="1"
 </div>
 
 </div>
+
+<script src="/js/profile/profile-user.js"></script>
+<script src="/js/profile/profile-avatar.js"></script>
+<script src="/js/profile/profile-posts.js"></script>
+<script src="/js/profile/profile-editor.js"></script>
+<script src="/js/profile/profile-tabs.js"></script>
+<script src="/js/profile/profile-settings.js"></script>
+<script src="/js/profile/profile-main.js"></script>
 
 </body>
 </html>

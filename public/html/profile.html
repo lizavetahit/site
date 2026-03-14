@@ -79,9 +79,10 @@ document.body.appendChild(script)
 
 <button class="main-btn" onclick="openEdit()">Редактировать профиль</button>
 
-<button class="secondary-btn" onclick="openSettings()">
-<i class="fa-solid fa-gear"></i> Настройки
-</button>
+<a href="/html/settings.html" class="secondary-btn">
+  <i class="fa-solid fa-gear"></i>
+  Настройки
+</a>
 
 </div>
 
@@ -114,9 +115,22 @@ document.body.appendChild(script)
 
 <div id="postsTab" class="tab-content active">
 
-<div class="section-header">
-<h3>Посты</h3>
-<button class="secondary-btn" onclick="openPostModal()">＋ Пост</button>
+<div class="posts-header">
+
+<div class="posts-title">
+
+<h2>Посты</h2>
+<span class="posts-subtitle">Лента публикаций</span>
+
+</div>
+
+<button class="create-post-btn" onclick="openPostModal()">
+
+<i class="fa-solid fa-plus"></i>
+<span>Пост</span>
+
+</button>
+
 </div>
 
 <div id="postsContainer"></div>
@@ -220,75 +234,79 @@ document.body.appendChild(script)
 
 </div>
 
-<div id="postModal" class="modal">
+<div id="postModal" class="post-modal">
+  <div class="post-modal-content">
+    <button class="post-modal-close" onclick="closePostModal()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
 
-<div class="post-editor">
+    <div class="post-modal-left">
+      <h3 class="post-modal-title">Создать публикацию</h3>
 
-<div class="post-editor-header">
+      <textarea
+        id="postText"
+        class="post-textarea"
+        placeholder="Что нового?"
+      ></textarea>
 
-<h3>Создать публикацию</h3>
+      <div id="editorDropzone" class="editor-dropzone">
+        <div id="mediaHint" class="media-hint">
+          <i class="fa-solid fa-photo-film"></i>
+          <p>Перетащи фото или видео сюда</p>
+          <span>или</span>
+          <button type="button" class="media-select-btn" onclick="selectMedia()">
+            Выбрать файл
+          </button>
+        </div>
 
-<button onclick="closePostModal()" class="icon-btn">
-<i class="fa-solid fa-xmark"></i>
-</button>
+        <input
+          type="file"
+          id="postMedia"
+          accept="image/*,video/*"
+          hidden
+        />
 
-</div>
+        <div id="editorPreview" class="editor-preview hidden">
+          <div id="editorViewport" class="editor-viewport">
+            <img id="editorImage" class="editor-image hidden" alt="preview" />
+            <video id="editorVideo" class="editor-video hidden" controls playsinline></video>
+          </div>
+        </div>
+      </div>
 
+      <input
+        type="range"
+        id="zoomSlider"
+        class="zoom-slider hidden"
+        min="1"
+        max="3"
+        step="0.01"
+        value="1"
+      />
 
-<textarea
-id="postText"
-maxlength="500"
-placeholder="Что нового?"
-></textarea>
+      <div id="mediaActions" class="media-actions hidden">
+        <button type="button" class="secondary-btn" onclick="selectMedia()">
+          Изменить файл
+        </button>
+        <button type="button" class="danger-btn" onclick="removeMedia()">
+          Удалить файл
+        </button>
+      </div>
 
+      <div id="uploadProgress" class="upload-progress hidden">
+        <div id="uploadBar" class="upload-bar"></div>
+      </div>
 
-<input
-type="file"
-id="postMedia"
-accept="image/*,video/*"
-hidden
->
-
-<div class="editor-preview hidden" id="editorPreview">
-
-<img id="editorImage">
-
-<video id="editorVideo" controls class="hidden"></video>
-
-</div>
-
-<div class="editor-controls">
-
-<button type="button" onclick="selectMedia()" class="secondary-btn">
-<i class="fa-solid fa-image"></i> Добавить фото
-</button>
-
-<button type="button" onclick="removeMedia()" class="secondary-btn">
-Удалить медиа
-</button>
-
-<input
-type="range"
-id="zoomSlider"
-min="1"
-max="3"
-step="0.01"
-class="hidden"
-/>
-
-</div>
-
-
-<div class="modal-buttons">
-
-<button onclick="publishPost()" class="main-btn">
-Опубликовать
-</button>
-
-</div>
-
-</div>
-
+      <div class="post-modal-actions">
+        <button type="button" class="secondary-btn" onclick="closePostModal()">
+          Отмена
+        </button>
+        <button type="button" id="publishPostBtn" class="primary-btn" onclick="publishPost()">
+          Опубликовать
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="/js/profile/profile-user.js"></script>

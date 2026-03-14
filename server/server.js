@@ -1,12 +1,14 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const path = require("path");
 const pool = require("../database/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const sharp = require("sharp");
+
+const fs = require("fs")
+const path = require("path")
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -278,28 +280,7 @@ if (req.file) {
 
 }
 
-app.delete("/delete-post/:id", async (req,res)=>{
 
-try{
-
-const userId = getUserIdFromToken(req)
-const postId = req.params.id
-
-await pool.query(
-"DELETE FROM posts WHERE id=$1 AND user_id=$2",
-[postId,userId]
-)
-
-res.json({success:true})
-
-}catch(err){
-
-console.error(err)
-res.status(500).send("delete_error")
-
-}
-
-})
 
 const result = await pool.query(
 `INSERT INTO posts(user_id,content,media_url,media_type)
@@ -318,6 +299,62 @@ res.status(500).json({error:"post_create_failed"});
 }
 
 });
+
+
+app.delete("/delete-post/:id", async (req,res)=>{
+
+try{
+
+const userId = getUserIdFromToken(req)
+const postId = req.params.id
+
+const result = await pool.query(
+"SELECT media_url FROM posts WHERE id=$1 AND user_id=$2",
+[postId,userId]
+)
+
+if(result.rows.length === 0){
+return res.status(404).json({error:"Post not found"})
+}
+
+const mediaUrl = result.rows[0].media_url
+
+if(mediaUrl){
+
+const cleanPath = mediaUrl.replace(/^\/+/,"")
+
+const filePath = path.join(__dirname,"..","public",cleanPath)
+
+console.log("Deleting:",filePath)
+
+fs.unlink(filePath,(err)=>{
+if(err){
+console.log("Delete error:",err)
+}else{
+console.log("File deleted")
+}
+})
+
+}
+
+await pool.query(
+"DELETE FROM posts WHERE id=$1 AND user_id=$2",
+[postId,userId]
+)
+
+res.json({success:true})
+
+}catch(err){
+
+console.error(err)
+res.status(500).json({error:"Server error"})
+
+
+}
+
+})
+
+
 
 app.get("/my-posts", async (req,res)=>{
 

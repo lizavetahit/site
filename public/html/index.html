@@ -2,16 +2,18 @@
 <html lang="ru">
 
 <head>
-
+    
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet">
 <meta charset="UTF-8">
 <title>Music Platform</title>
 
-<link rel="stylesheet" href="../styles/style.css">
+<link rel="stylesheet" href="/styles/base.css">
 <link rel="stylesheet" href="/styles/navbar.css">
+<link rel="stylesheet" href="../styles/style.css">
 
 </head>
 
-
+<script src="/js/navbar.js"></script>
 <body>
 
 <!-- NAVBAR ПОДГРУЖАЕТСЯ СЮДА -->
@@ -26,23 +28,33 @@
 
 <h2>🔥 Топ треки</h2>
 
+<a href="/html/track.html" class="track-link">
+
 <div class="track-card">
 <img src="https://picsum.photos/300/200">
 <p>Artist — Track</p>
-<span>⭐ 92</span>
+<span>⭐ 90</span>
 </div>
+
+</a>
+
+<a href="/html/track.html" class="track-link">
 
 <div class="track-card">
 <img src="https://picsum.photos/300/201">
 <p>Artist — Track</p>
-<span>⭐ 88</span>
+<span>⭐ 89</span>
 </div>
 
+</a>
+
+<a href="/html/track.html" class="track-link">
 <div class="track-card">
 <img src="https://picsum.photos/300/202">
 <p>Artist — Track</p>
-<span>⭐ 85</span>
+<span>⭐ 88</span>
 </div>
+</a>
 
 </aside>
 
@@ -135,51 +147,7 @@ document.body.appendChild(script)
 
 </script>
 
-<script>
-
-async function loadFeed(){
-
-const res = await fetch("/feed")
-const posts = await res.json()
-
-const container = document.querySelector(".feed")
-
-container.innerHTML = '<h2 class="feed-title">Рекомендованные посты</h2>'
-
-posts.forEach(post=>{
-
-let media=""
-
-if(post.media_type==="image"){
-media=`<img src="${post.media_url}" class="post-media">`
-}
-
-if(post.media_type==="video"){
-media=`<video controls class="post-media"><source src="${post.media_url}"></video>`
-}
-
-container.innerHTML += `
-<div class="post">
-
-<div class="post-header">
-<img src="${post.avatar}">
-<b>${post.username}</b>
-</div>
-
-<p>${post.content}</p>
-
-${media}
-
-</div>
-`
-
-})
-
-}
-
-loadFeed()
-
-</script>
 
 </body>
+<div id="navbar-container"></div>
 </html>

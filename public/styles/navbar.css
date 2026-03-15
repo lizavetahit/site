@@ -2,16 +2,58 @@
 display:flex;
 justify-content:space-between;
 align-items:center;
+
+width:100%;
+
 padding:20px 60px;
+
 background:#151522;
 border-bottom:1px solid #222;
+
+box-sizing:border-box;
 }
 
 .logo{
-font-size:22px;
-font-weight:bold;
-color:#c084fc;
+display:flex;
+align-items:center;
+text-decoration:none;
+padding:6px 12px;
+border-radius:8px;
+border:1px solid transparent;
+transition:0.25s;
 }
+
+.logo-icon{
+width:34px;
+height:34px;
+
+fill:white;
+stroke:white;
+stroke-width:10;
+
+display:block;
+
+margin-right:-4px;
+}
+
+.logo-text{
+font-family:'Oswald', sans-serif;
+font-weight:600;
+
+font-size:30px;
+
+letter-spacing:-0.5px;
+
+color:white;
+
+line-height:1;
+}
+
+.logo:hover{
+border:1px solid rgba(255,255,255,0.6);
+box-shadow:0 0 6px rgba(255,255,255,0.3);
+}
+
 
 nav a{
 margin-left:25px;

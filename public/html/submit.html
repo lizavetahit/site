@@ -1,99 +1,571 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Отправить трек</title>
-<link rel="stylesheet" href="../styles/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles/base.css">
+<link rel="stylesheet" href="/styles/navbar.css">
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Скинуть трек</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(40, 50, 120, 0.18), transparent 35%),
+        linear-gradient(180deg, #050816 0%, #040611 100%);
+      color: white;
+      min-height: 100vh;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 1120px;
+      background: rgba(12, 16, 42, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+      padding: 48px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 34px;
+      align-items: start;
+    }
+
+    .cover-block {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .cover-label {
+      width: 190px;
+      height: 190px;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cover-label:hover {
+      border-color: rgba(177, 124, 255, 0.55);
+      box-shadow: 0 0 0 1px rgba(177, 124, 255, 0.22);
+    }
+
+    .cover-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.55);
+      text-align: center;
+      padding: 16px;
+      gap: 8px;
+    }
+
+    .cover-placeholder .hash {
+      font-size: 76px;
+      font-weight: 700;
+      line-height: 1;
+      color: #ffffff;
+    }
+
+    .cover-placeholder .cover-text {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    .cover-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .hidden-input {
+      display: none;
+    }
+
+    .cover-hint {
+      font-size: 13px;
+      line-height: 1.4;
+      color: rgba(255, 255, 255, 0.52);
+    }
+
+    .right-side {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .top-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field-group label {
+      font-size: 18px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.86);
+      text-transform: uppercase;
+    }
+
+    .input,
+    .file-fake {
+      width: 100%;
+      height: 58px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      outline: none;
+      padding: 0 18px;
+      font-size: 17px;
+      transition: 0.2s ease;
+    }
+
+    .input::placeholder {
+      color: rgba(255, 255, 255, 0.34);
+    }
+
+    .input:focus {
+      border-color: rgba(177, 124, 255, 0.6);
+      box-shadow: 0 0 0 1px rgba(177, 124, 255, 0.18);
+    }
+
+    .soundcloud-row {
+      display: grid;
+      grid-template-columns: 1fr 170px;
+      gap: 20px;
+      align-items: end;
+    }
+
+    .fetch-btn {
+      height: 58px;
+      border: none;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #8d1d2f 0%, #66111f 100%);
+      color: white;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .fetch-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .audio-upload-block {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .file-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .file-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 58px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px 14px;
+      gap: 14px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .file-trigger:hover {
+      border-color: rgba(177, 124, 255, 0.55);
+      box-shadow: 0 0 0 1px rgba(177, 124, 255, 0.14);
+    }
+
+    .file-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .file-btn {
+      white-space: nowrap;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .file-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 15px;
+    }
+
+    .audio-preview-wrap {
+      display: none;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.09);
+      background: rgba(255,255,255,0.04);
+      padding: 14px;
+    }
+
+    .audio-title {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.62);
+      margin-bottom: 10px;
+    }
+
+    audio {
+      width: 100%;
+      height: 42px;
+    }
+
+    .status {
+      min-height: 22px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.62);
+    }
+
+    .status.error {
+      color: #ff8f9f;
+    }
+
+    .status.success {
+      color: #92ffb4;
+    }
+
+    .submit-btn {
+      width: 100%;
+      height: 64px;
+      margin-top: 30px;
+      border: none;
+      border-radius: 22px;
+      background: linear-gradient(90deg, #a56df0 0%, #b17cff 50%, #9d6df1 100%);
+      color: #0d0916;
+      font-size: 20px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+    }
+
+    .queue-link-wrap {
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .queue-link {
+      color: rgba(255,255,255,0.72);
+      text-decoration: none;
+      font-size: 18px;
+      transition: 0.2s ease;
+    }
+
+    .queue-link:hover {
+      color: white;
+    }
+
+    @media (max-width: 980px) {
+      .card {
+        padding: 28px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cover-block {
+        align-items: center;
+      }
+
+      .cover-label {
+        width: 220px;
+        height: 220px;
+      }
+
+      .top-row,
+      .soundcloud-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .card {
+        padding: 22px;
+        border-radius: 22px;
+      }
+
+      .cover-label {
+        width: 180px;
+        height: 180px;
+      }
+
+      .field-group label {
+        font-size: 15px;
+      }
+
+      .input,
+      .fetch-btn,
+      .submit-btn {
+        font-size: 16px;
+      }
+    }
+  </style>
 </head>
+
+<script src="/js/navbar.js"></script>
 
 <body>
 
 <div id="navbar"></div>
 
-<script>
+  <div class="page">
+    <div class="card">
+      <form id="trackForm">
+        <div class="form-grid">
+          <div class="cover-block">
+            <label class="cover-label" for="coverInput">
+              <div class="cover-placeholder" id="coverPlaceholder">
+                <div class="hash">#</div>
+                <div class="cover-text">cover</div>
+              </div>
+              <img id="coverPreview" class="cover-preview" alt="Обложка трека" />
+            </label>
 
-fetch("/html/components/navbar.html")
-.then(res => res.text())
-.then(data => {
+            <input
+              id="coverInput"
+              class="hidden-input"
+              type="file"
+              accept="image/*"
+            />
 
-document.getElementById("navbar").innerHTML = data
+            <div class="cover-hint">
+              Нажми на обложку, чтобы загрузить изображение
+            </div>
+          </div>
 
-const script = document.createElement("script")
-script.src = "/js/navbar.js"
-document.body.appendChild(script)
+          <div class="right-side">
+            <div class="top-row">
+              <div class="field-group">
+                <label for="artistInput">Автор:</label>
+                <input
+                  id="artistInput"
+                  class="input"
+                  type="text"
+                  placeholder="Автор"
+                />
+              </div>
 
-})
+              <div class="field-group">
+                <label for="titleInput">Название трека:</label>
+                <input
+                  id="titleInput"
+                  class="input"
+                  type="text"
+                  placeholder="Название трека"
+                />
+              </div>
+            </div>
 
-</script>
+            <div class="soundcloud-row">
+              <div class="field-group">
+                <label for="soundcloudInput">Ссылка SoundCloud:</label>
+                <input
+                  id="soundcloudInput"
+                  class="input"
+                  type="text"
+                  placeholder="https://soundcloud.com/..."
+                />
+              </div>
 
-<div class="layout">
+              <button type="button" class="fetch-btn" id="fetchBtn">
+                ПОДТЯНУТЬ
+              </button>
+            </div>
 
-<!-- ЛЕВАЯ КОЛОНКА -->
+            <div class="audio-upload-block">
+              <div class="field-group">
+                <label for="audioInput">Аудиофайл:</label>
 
-<aside class="sidebar">
+                <label class="file-trigger" for="audioInput">
+                  <div class="file-left">
+                    <div class="file-btn">Выбрать файл</div>
+                    <div class="file-name" id="audioFileName">Файл не выбран</div>
+                  </div>
+                </label>
 
-<h2>🔥 Топ треки</h2>
+                <input
+                  id="audioInput"
+                  class="hidden-input"
+                  type="file"
+                  accept="audio/*"
+                />
+              </div>
 
-<div class="card">
-<img src="https://picsum.photos/300/200">
-<h3>Artist — Track</h3>
-<p>⭐ 92</p>
-</div>
+              <div class="audio-preview-wrap" id="audioPreviewWrap">
+                <div class="audio-title">Предпрослушивание:</div>
+                <audio id="audioPreview" controls></audio>
+              </div>
+            </div>
 
-<div class="card">
-<img src="https://picsum.photos/300/201">
-<h3>Artist — Track</h3>
-<p>⭐ 88</p>
-</div>
+            <div class="status" id="statusText"></div>
+          </div>
+        </div>
 
-</aside>
+        <button class="submit-btn" type="submit">
+          ОТПРАВИТЬ ТРЕК
+        </button>
+      </form>
 
+      <div class="queue-link-wrap">
+        <a class="queue-link" href="/html/queue.html">посмотреть очередь</a>
+      </div>
+    </div>
+  </div>
 
-<!-- ЦЕНТР (ПОСТЫ) -->
+  <script>
+    const coverInput = document.getElementById("coverInput");
+    const coverPreview = document.getElementById("coverPreview");
+    const coverPlaceholder = document.getElementById("coverPlaceholder");
 
-<main class="feed">
+    const audioInput = document.getElementById("audioInput");
+    const audioPreview = document.getElementById("audioPreview");
+    const audioPreviewWrap = document.getElementById("audioPreviewWrap");
+    const audioFileName = document.getElementById("audioFileName");
 
-<h2>Лента</h2>
+    const soundcloudInput = document.getElementById("soundcloudInput");
+    const artistInput = document.getElementById("artistInput");
+    const titleInput = document.getElementById("titleInput");
+    const fetchBtn = document.getElementById("fetchBtn");
+    const statusText = document.getElementById("statusText");
+    const trackForm = document.getElementById("trackForm");
 
-<div class="post">
-<h4>Producer123</h4>
-<p>Новый трек скоро выйдет 🔥</p>
-</div>
+    coverInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file) return;
 
-<div class="post">
-<h4>DJ Alex</h4>
-<p>Кто кидает треки на стрим сегодня?</p>
-</div>
+      const imageUrl = URL.createObjectURL(file);
+      coverPreview.src = imageUrl;
+      coverPreview.style.display = "block";
+      coverPlaceholder.style.display = "none";
+    });
 
-<div class="post">
-<h4>BeatMaker</h4>
-<p>Сегодня сделал новый бит</p>
-</div>
+    audioInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file) {
+        audioFileName.textContent = "Файл не выбран";
+        audioPreview.removeAttribute("src");
+        audioPreviewWrap.style.display = "none";
+        return;
+      }
 
-</main>
+      audioFileName.textContent = file.name;
 
+      const audioUrl = URL.createObjectURL(file);
+      audioPreview.src = audioUrl;
+      audioPreviewWrap.style.display = "block";
+    });
 
-<!-- ПРАВАЯ КОЛОНКА -->
+    function setStatus(message, type = "") {
+      statusText.textContent = message;
+      statusText.className = "status";
+      if (type) {
+        statusText.classList.add(type);
+      }
+    }
 
-<aside class="sidebar">
+    fetchBtn.addEventListener("click", async function () {
+      const url = soundcloudInput.value.trim();
 
-<h2>🏆 Топ исполнители</h2>
+      if (!url) {
+        setStatus("Вставь ссылку SoundCloud.", "error");
+        return;
+      }
 
-<div class="artist-card">
-<img src="https://picsum.photos/200">
-<h3>ProducerX</h3>
-</div>
+      setStatus("Подтягиваю данные...");
 
-<div class="artist-card">
-<img src="https://picsum.photos/201">
-<h3>DJ Alex</h3>
-</div>
+      try {
+        const response = await fetch(`/api/soundcloud?url=${encodeURIComponent(url)}`);
+        const data = await response.json();
 
-</aside>
+        if (!response.ok) {
+          throw new Error(data.message || "Не удалось получить данные трека.");
+        }
 
-</div>
+        if (data.artist) {
+          artistInput.value = data.artist;
+        }
 
-</section>
+        if (data.title) {
+          titleInput.value = data.title;
+        }
 
+        if (data.artwork) {
+          coverPreview.src = data.artwork;
+          coverPreview.style.display = "block";
+          coverPlaceholder.style.display = "none";
+        }
+
+        setStatus("Данные успешно подтянуты.", "success");
+      } catch (error) {
+        setStatus(
+          "Не удалось подтянуть данные. Нужен backend-роут /api/soundcloud.",
+          "error"
+        );
+        console.error(error);
+      }
+    });
+
+    trackForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      setStatus("Форма готова. Дальше можно подключать реальную отправку на сервер.", "success");
+    });
+  </script>
 </body>
 </html>

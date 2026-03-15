@@ -1,9 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
+
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Очередь треков</title>
-<link rel="stylesheet" href="../styles/style.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles/base.css">
+
+<link rel="stylesheet" href="/styles/navbar.css">
+<link rel="stylesheet" href="/styles/queue.css">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
 </head>
 
 <body>
@@ -27,53 +39,74 @@ document.body.appendChild(script)
 </script>
 
 
-<section class="container">
+<div class="queue-page">
 
-<h1>Очередь треков</h1>
+<h1 class="queue-title">Очередь треков</h1>
 
-<div class="queue">
+<div id="queueList" class="queue-list">
 
-<div class="track">
+<div class="track-card">
 
-<div>
-<h3>1. Artist — Track</h3>
+<div class="track-left">
+
+<img src="https://i.scdn.co/image/ab67616d0000b273947f6b95c89e4c1f7c43a44b" class="track-cover">
+
+<div class="track-info">
+<div class="track-artist">Drake</div>
+<div class="track-title">Gods Plan</div>
 </div>
 
-<button class="rate-btn">
-Начать оценку
+</div>
+
+<div class="track-actions">
+
+<button class="judge-btn">
+<i class="fa-solid fa-play"></i>
+Оценить
 </button>
 
-</div>
-
-
-<div class="track">
-
-<div>
-<h3>2. Artist — Track</h3>
-</div>
-
-<button class="rate-btn">
-Начать оценку
-</button>
-
-</div>
-
-
-<div class="track">
-
-<div>
-<h3>3. Artist — Track</h3>
-</div>
-
-<button class="rate-btn">
-Начать оценку
+<button class="delete-btn">
+<i class="fa-solid fa-trash"></i>
 </button>
 
 </div>
 
 </div>
 
-</section>
+<div class="track-card">
+
+<div class="track-left">
+
+<img src="https://i.scdn.co/image/ab67616d0000b2739b7e6cba6e8c7c3d6c02ab73" class="track-cover">
+
+<div class="track-info">
+<div class="track-artist">Travis Scott</div>
+<div class="track-title">FE!N</div>
+</div>
+
+</div>
+
+<div class="track-actions">
+
+<button class="judge-btn">
+<i class="fa-solid fa-play"></i>
+Оценить
+</button>
+
+<button class="delete-btn">
+<i class="fa-solid fa-trash"></i>
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script src="/js/queue.js"></script>
 
 </body>
 </html>

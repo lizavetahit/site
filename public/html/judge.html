@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="ru">
+<head>
+
+   
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Оценка трека</title>
+
+<style>
+
+:root{
+--bg:#070810;
+--bg2:#0b0d18;
+
+--panel:#0f1323cc;
+--panel2:#151035cc;
+--panel3:#2a1010cc;
+
+--text:#e9e9ef;
+--muted:#a7a9b7;
+
+--accent:#ff3b3b;
+--trackOff:rgba(255,255,255,.10);
+--border:rgba(255,255,255,.10);
+
+--shadow:0 24px 70px rgba(0,0,0,.70);
+}
+
+*{
+box-sizing:border-box;
+font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+body{
+margin:0;
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+color:var(--text);
+
+background:
+radial-gradient(900px 520px at 65% 20%, rgba(80,40,120,.22) 0%, transparent 55%),
+radial-gradient(900px 520px at 20% 80%, rgba(120,30,40,.18) 0%, transparent 55%),
+linear-gradient(180deg,var(--bg),var(--bg2));
+
+padding:24px;
+}
+
+.app{
+width:min(1120px,100%);
+border-radius:22px;
+overflow:hidden;
+box-shadow:var(--shadow);
+border:1px solid var(--border);
+background:rgba(6,7,14,.72);
+backdrop-filter:blur(10px);
+}
+
+/* TRACK HEADER */
+
+.top{
+padding:18px 22px;
+display:flex;
+gap:18px;
+align-items:center;
+border-bottom:1px solid rgba(255,255,255,.08);
+background:rgba(255,255,255,.03);
+}
+
+.cover{
+width:132px;
+height:132px;
+border-radius:16px;
+border:1px solid rgba(255,255,255,.10);
+background:rgba(255,255,255,.06);
+overflow:hidden;
+}
+
+.cover img{
+width:100%;
+height:100%;
+object-fit:cover;
+display:block;
+}
+
+.trackInfo{
+display:flex;
+flex-direction:column;
+gap:6px;
+}
+
+.trackInfo small{
+color:var(--muted);
+font-weight:800;
+letter-spacing:.06em;
+}
+
+.trackInfo h1{
+margin:0;
+font-size:34px;
+}
+
+.trackInfo h2{
+margin:0;
+font-weight:600;
+color:rgba(255,255,255,.8);
+}
+
+/* PANELS */
+
+.panel{
+padding:18px 18px 10px;
+background:linear-gradient(180deg, rgba(15,19,35,.75), rgba(12,14,26,.68));
+}
+
+.panel2{
+padding:14px 18px;
+background:linear-gradient(180deg, rgba(21,16,53,.65), rgba(14,12,34,.60));
+border-top:1px solid rgba(255,255,255,.06);
+}
+
+.panel3{
+padding:14px 18px;
+background:linear-gradient(180deg, rgba(42,16,16,.62), rgba(22,10,10,.56));
+border-top:1px solid rgba(255,255,255,.06);
+}
+
+/* ROW */
+
+.row{
+display:grid;
+grid-template-columns:1.2fr 1.5fr 72px;
+gap:16px;
+align-items:center;
+padding:12px 8px;
+border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.row:last-child{
+border-bottom:0;
+}
+
+.rowTitle{
+font-weight:950;
+letter-spacing:.03em;
+text-transform:uppercase;
+}
+
+/* RANGE */
+
+input[type="range"]{
+width:100%;
+appearance:none;
+height:10px;
+border-radius:999px;
+
+background:linear-gradient(
+90deg,
+var(--accent) 0%,
+var(--accent) var(--fill,0%),
+var(--trackOff) var(--fill,0%),
+var(--trackOff) 100%
+);
+
+outline:none;
+border:1px solid rgba(255,255,255,.10);
+}
+
+input[type="range"]::-webkit-slider-thumb{
+appearance:none;
+width:22px;
+height:22px;
+border-radius:50%;
+
+background:radial-gradient(circle at 30% 30%, #ffffff 0%, #d7dbe6 45%, #7b859c 100%);
+border:1px solid rgba(0,0,0,.45);
+
+box-shadow:0 8px 18px rgba(0,0,0,.45);
+cursor:pointer;
+}
+
+.valueBox{
+height:42px;
+width:72px;
+border-radius:12px;
+
+background:rgba(8,10,18,.55);
+border:1px solid rgba(255,255,255,.10);
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-weight:950;
+font-size:18px;
+}
+
+.note{
+color:rgba(255,255,255,.55);
+font-size:12px;
+margin-top:8px;
+}
+
+/* BOTTOM */
+
+.bottom{
+padding:16px 18px;
+display:flex;
+gap:12px;
+align-items:center;
+justify-content:space-between;
+border-top:1px solid rgba(255,255,255,.08);
+background:rgba(255,255,255,.03);
+flex-wrap:wrap;
+}
+
+.summary{
+display:flex;
+gap:10px;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.pill{
+padding:10px 12px;
+border-radius:14px;
+border:1px solid rgba(255,255,255,.10);
+background:rgba(8,10,18,.50);
+font-weight:950;
+}
+
+.pill.red{
+background:rgba(255,59,59,.12);
+border-color:rgba(255,59,59,.28);
+}
+
+.result{
+font-weight:1000;
+font-size:22px;
+display:flex;
+gap:10px;
+align-items:baseline;
+}
+
+.result span{
+font-size:34px;
+}
+
+button{
+height:46px;
+padding:0 18px;
+border-radius:14px;
+border:1px solid rgba(255,255,255,.10);
+cursor:pointer;
+color:#fff;
+font-weight:950;
+letter-spacing:.04em;
+text-transform:uppercase;
+}
+
+#rateBtn{
+background:linear-gradient(180deg, rgba(255,59,59,.35), rgba(184,31,43,.22));
+}
+
+#resetBtn{
+background:rgba(255,255,255,.04);
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div id="navbar"></div>
+
+<div class="app">
+
+<div class="top">
+
+<div class="cover">
+<img src="cover.jpg">
+</div>
+
+<div class="trackInfo">
+<small>ОЦЕНКА ТРЕКА</small>
+<h1 id="trackName">Track Name</h1>
+<h2 id="trackArtist">Artist Name</h2>
+</div>
+
+</div>
+
+<div class="panel">
+
+<div class="row">
+<div class="rowTitle">РИФМЫ И ОБРАЗЫ</div>
+<input id="s1" type="range" min="1" max="10" value="10">
+<div class="valueBox" id="v1">10</div>
+</div>
+
+<div class="row">
+<div class="rowTitle">СТРУКТУРА И РИТМИКА</div>
+<input id="s2" type="range" min="1" max="10" value="10">
+<div class="valueBox" id="v2">10</div>
+</div>
+
+<div class="row">
+<div class="rowTitle">РЕАЛИЗАЦИЯ СТИЛЯ</div>
+<input id="s3" type="range" min="1" max="10" value="10">
+<div class="valueBox" id="v3">10</div>
+</div>
+
+<div class="row">
+<div class="rowTitle">ИНДИВИДУАЛЬНОСТЬ И ХАРИЗМА</div>
+<input id="s4" type="range" min="1" max="10" value="10">
+<div class="valueBox" id="v4">10</div>
+</div>
+
+</div>
+
+<div class="panel2">
+
+<div class="row">
+<div class="rowTitle">АТМОСФЕРА И ВАЙБ</div>
+<input id="b1" type="range" min="1" max="5" value="1">
+<div class="valueBox" id="bv1">1</div>
+</div>
+
+<div class="note">
+Сначала база × (1 + вайб×0.1), потом × (1 + запоминаемость×0.1)
+</div>
+
+</div>
+
+<div class="panel3">
+
+<div class="row">
+<div class="rowTitle">ЗАПОМИНАЕМОСТЬ</div>
+<input id="b2" type="range" min="1" max="5" value="1">
+<div class="valueBox" id="bv2">1</div>
+</div>
+
+</div>
+
+<div class="bottom">
+
+<div class="summary">
+<div class="pill" id="baseExpr">10 + 10 + 10 + 10</div>
+<div class="pill red" id="bonusExpr1">× 1.1</div>
+<div class="pill red" id="bonusExpr2">× 1.1</div>
+<div class="pill">=</div>
+<div class="result"><span id="total">48</span> БАЛЛОВ</div>
+</div>
+
+<div style="display:flex; gap:10px;">
+<button id="resetBtn">ОЧИСТИТЬ</button>
+<button id="rateBtn">ОЦЕНИТЬ</button>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const sliders=["s1","s2","s3","s4"]
+
+function setFill(el){
+
+const min=Number(el.min)
+const max=Number(el.max)
+const val=Number(el.value)
+
+const pct=((val-min)/(max-min))*100
+
+el.style.setProperty("--fill",pct+"%")
+
+}
+
+function recalc(){
+
+let vals=sliders.map(id=>Number(document.getElementById(id).value))
+
+let base=vals.reduce((a,b)=>a+b,0)
+
+let vibe=Number(document.getElementById("b1").value)
+let mem=Number(document.getElementById("b2").value)
+
+let k1=1+vibe*0.1
+let k2=1+mem*0.1
+
+let total=Math.round(base*k1*k2)
+
+document.getElementById("baseExpr").textContent=vals.join(" + ")
+document.getElementById("bonusExpr1").textContent="× "+k1.toFixed(1)
+document.getElementById("bonusExpr2").textContent="× "+k2.toFixed(1)
+document.getElementById("total").textContent=total
+
+sliders.forEach((id,i)=>{
+
+let el=document.getElementById(id)
+document.getElementById("v"+(i+1)).textContent=el.value
+setFill(el)
+
+})
+
+let b1=document.getElementById("b1")
+let b2=document.getElementById("b2")
+
+document.getElementById("bv1").textContent=b1.value
+document.getElementById("bv2").textContent=b2.value
+
+setFill(b1)
+setFill(b2)
+
+}
+
+document.querySelectorAll("input[type=range]").forEach(el=>{
+
+el.addEventListener("input",recalc)
+
+setFill(el)
+
+})
+
+document.getElementById("resetBtn").onclick=()=>{
+
+document.querySelectorAll("input[type=range]").forEach(el=>{
+
+el.value=el.min
+setFill(el)
+
+})
+
+recalc()
+
+}
+
+recalc()
+
+</script>
+
+</body>
+</html>

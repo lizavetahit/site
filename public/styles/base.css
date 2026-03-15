@@ -1,0 +1,35 @@
+
+/* Сброс стандартных отступов браузера */
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+/* Базовый стиль страницы */
+body{
+font-family: system-ui, -apple-system, sans-serif;
+background: radial-gradient(circle at top, #1a1430, #0b0b18);
+color:white;
+min-height:100vh;
+}
+
+/* Чтобы ссылки не были синими */
+a{
+text-decoration:none;
+color:inherit;
+}
+
+/* Контейнер для страниц авторизации */
+.auth-container{
+display:flex;
+justify-content:center;
+align-items:center;
+
+min-height:calc(100vh - 80px);
+}
+
+/* Небольшая плавность для интерфейса */
+button, a{
+transition:0.2s;
+}

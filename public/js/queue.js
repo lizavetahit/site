@@ -1,83 +1,104 @@
 const queueList = document.getElementById("queueList")
 
-async function loadQueue(){
+async function loadQueue() {
+  try {
+    const res = await fetch("/api/tracks/queue")
+    const tracks = await res.json()
 
-try{
+    queueList.innerHTML = ""
 
-const res = await fetch("/api/tracks/queue")
-const tracks = await res.json()
+    tracks
+  .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+  .forEach((track, index) => {
 
-queueList.innerHTML=""
+      const trackCard = document.createElement("div")
+      trackCard.className = "track-card"
 
-tracks.forEach(track=>{
+      // 👉 переход по карточке
+      trackCard.addEventListener("click", () => {
+        window.location.href = `/html/track.html?id=${track.id}`
+      })
 
-const trackCard = document.createElement("div")
-trackCard.className="track-card"
+      // HTML без onclick
+      trackCard.innerHTML = `
+  <div class="track-left">
 
-trackCard.innerHTML=`
+    <div class="track-number">${index + 1}</div>
 
-<div class="track-left">
+    <div class="cover-wrap">
+      <img src="${track.cover || '/images/cover-placeholder.jpg'}" class="track-cover">
+    </div>
 
-<img src="${track.cover || '/images/cover-placeholder.jpg'}" class="track-cover">
+    <div class="track-info">
+      <div class="track-artist">${track.artist}</div>
+      <div class="track-title">${track.title}</div>
+    </div>
 
-<div class="track-info">
+  </div>
 
-<div class="track-artist">${track.artist}</div>
-<div class="track-title">${track.title}</div>
+  <div class="track-actions">
+    <button class="judge-btn">
+      <i class="fa-solid fa-play"></i>
+      Оценить
+    </button>
 
-</div>
-
-</div>
-
-<div class="track-actions">
-
-<button class="judge-btn" onclick="startJudge(${track.id})">
-
-<i class="fa-solid fa-play"></i>
-Оценить
-
-</button>
-
-<button class="delete-btn" onclick="deleteTrack(${track.id})">
-
-<i class="fa-solid fa-trash"></i>
-
-</button>
-
-</div>
-
+    <button class="delete-btn">
+      <i class="fa-solid fa-trash"></i>
+    </button>
+  </div>
 `
 
-queueList.appendChild(trackCard)
+      // 👉 находим кнопки
+      const judgeBtn = trackCard.querySelector(".judge-btn")
+      const deleteBtn = trackCard.querySelector(".delete-btn")
 
+      // 👉 стопаем всплытие (ВАЖНО)
+      judgeBtn.addEventListener("click", (e) => {
+        e.stopPropagation()
+        startJudge(track.id)
+      })
+
+      deleteBtn.addEventListener("click", async (e) => {
+  e.preventDefault()
+  e.stopPropagation()
+
+  const confirmed = confirm("Удалить трек?")
+  if (!confirmed) return
+
+  try {
+    const res = await fetch(`/api/tracks/${track.id}`, {
+      method: "DELETE"
+    })
+
+    if (!res.ok) {
+      throw new Error("Ошибка удаления")
+    }
+
+    // 🔥 УДАЛЯЕМ ИЗ DOM БЕЗ ПЕРЕЗАГРУЗКИ
+    trackCard.remove()
+
+  } catch (err) {
+    console.error(err)
+    alert("Ошибка при удалении")
+  }
 })
 
-}catch(err){
+      queueList.appendChild(trackCard)
+    })
 
-console.error("Ошибка загрузки очереди",err)
-
+  } catch (err) {
+    console.error("Ошибка загрузки очереди", err)
+  }
 }
 
+function startJudge(trackId) {
+  window.location.href = `/html/judge.html?track=${trackId}`
 }
 
-function startJudge(trackId){
 
-window.location.href = `/html/judge.html?track=${trackId}`
 
-}
-
-async function deleteTrack(trackId){
-
-if(!confirm("Удалить трек?")) return
-
-await fetch(`/api/tracks/${trackId}`,{
-method:"DELETE"
-})
-
+// первая загрузка
 loadQueue()
 
-}
-
-loadQueue()
-
-setInterval(loadQueue,5000)
+// автообновление
+setInterval(loadQueue, 5000)

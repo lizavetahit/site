@@ -2,152 +2,180 @@
 <html lang="ru">
 
 <head>
-    
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet">
-<meta charset="UTF-8">
-<title>Music Platform</title>
+  <meta charset="UTF-8">
+  <title>Music Platform</title>
 
-<link rel="stylesheet" href="/styles/base.css">
-<link rel="stylesheet" href="/styles/navbar.css">
-<link rel="stylesheet" href="../styles/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet">
 
+  <link rel="stylesheet" href="/styles/base.css">
+  <link rel="stylesheet" href="/styles/navbar.css">
+  <link rel="stylesheet" href="/styles/style.css">
 </head>
 
-<script src="/js/navbar.js"></script>
 <body>
 
-<!-- NAVBAR ПОДГРУЖАЕТСЯ СЮДА -->
-<div id="navbar"></div>
+<!-- 🔥 ВИДЕО ФОН -->
+<div class="video-background">
+  <video autoplay muted loop playsinline id="background-video">
+    <source src="/images/bg.mp4" type="video/mp4">
+  </video>
+</div>
 
+<!-- NAVBAR -->
+<div id="navbar"></div>
 
 <div class="main-layout">
 
 <!-- ЛЕВАЯ КОЛОНКА -->
-
 <aside class="left-panel">
 
 <h2>🔥 Топ треки</h2>
 
 <a href="/html/track.html" class="track-link">
-
 <div class="track-card">
 <img src="https://picsum.photos/300/200">
 <p>Artist — Track</p>
 <span>⭐ 90</span>
 </div>
-
 </a>
 
 <a href="/html/track.html" class="track-link">
-
 <div class="track-card">
 <img src="https://picsum.photos/300/201">
 <p>Artist — Track</p>
 <span>⭐ 89</span>
 </div>
-
-</a>
-
-<a href="/html/track.html" class="track-link">
-<div class="track-card">
-<img src="https://picsum.photos/300/202">
-<p>Artist — Track</p>
-<span>⭐ 88</span>
-</div>
 </a>
 
 </aside>
 
-
 <!-- ЦЕНТР -->
-
 <main class="feed">
 
 <h2 class="feed-title">Рекомендованные посты</h2>
 
 <div class="post">
-
 <div class="post-header">
-<img src="https://picsum.photos/40">
-<b>Producer123</b>
+  <img src="https://picsum.photos/40">
+  
+  <div class="post-user">
+    <span class="post-name">Producer123</span>
+    <span class="post-time">2 мин назад</span>
+  </div>
+<div class="post-actions">
+  <button class="action-btn">🔥 12</button>
+  <button class="action-btn">💬 3</button>
 </div>
-
+</div>
 <p>Сегодня дропаю новый трек 🔥</p>
-
 </div>
-
 
 <div class="post">
-
 <div class="post-header">
-<img src="https://picsum.photos/41">
-<b>DJ Alex</b>
+  <img src="https://picsum.photos/50">
+  
+  <div class="post-user">
+    <span class="post-name">Dj Alex</span>
+    <span class="post-time">2 мин назад</span>
+  </div>
+<div class="post-actions">
+  <button class="action-btn">🔥 12</button>
+  <button class="action-btn">💬 3</button>
 </div>
-
+</div>
 <p>Кто сегодня кидает треки на стрим?</p>
-
 </div>
-
 
 <div class="post">
-
 <div class="post-header">
-<img src="https://picsum.photos/42">
-<b>BeatMaker</b>
+  <img src="https://picsum.photos/60">
+  
+  <div class="post-user">
+    <span class="post-name">Beatmaker</span>
+    <span class="post-time">2 мин назад</span>
+  </div>
+<div class="post-actions">
+  <button class="action-btn">🔥 12</button>
+  <button class="action-btn">💬 3</button>
 </div>
-
+</div>
 <p>Работаю над новым альбомом 🎶</p>
-
 </div>
 
 </main>
 
-
 <!-- ПРАВАЯ КОЛОНКА -->
-
 <aside class="right-panel">
 
 <h2>🏆 Топ исполнители</h2>
 
 <div class="artist">
-<img src="https://picsum.photos/100">
-<p>ProducerX</p>
+
+  <div class="artist-left">
+    <div class="artist-rank">#1</div>
+
+    <img src="https://picsum.photos/100">
+
+    <div class="artist-info">
+      <span class="artist-name">ProducerX</span>
+      <span class="artist-meta">🔥 120 лайков</span>
+    </div>
+  </div>
+
+  <div class="artist-status online"></div>
+
 </div>
 
 <div class="artist">
-<img src="https://picsum.photos/101">
-<p>DJ Alex</p>
+
+  <div class="artist-left">
+    <div class="artist-rank">#1</div>
+
+    <img src="https://picsum.photos/101">
+
+    <div class="artist-info">
+      <span class="artist-name">DjAlex</span>
+      <span class="artist-meta">🔥 103 лайков</span>
+    </div>
+  </div>
+
+  <div class="artist-status online"></div>
+
 </div>
 
 <div class="artist">
-<img src="https://picsum.photos/102">
-<p>BeatMaker</p>
+
+  <div class="artist-left">
+    <div class="artist-rank">#1</div>
+
+    <img src="https://picsum.photos/100">
+
+    <div class="artist-info">
+      <span class="artist-name">BeatMaker</span>
+      <span class="artist-meta">🔥 117 лайков</span>
+    </div>
+  </div>
+
+  <div class="artist-status online"></div>
+
 </div>
 
 </aside>
 
 </div>
 
-
-<!-- ПОДГРУЗКА NAVBAR -->
-
+<!-- 🔥 ПОДГРУЗКА NAVBAR -->
 <script>
-
 fetch("/html/components/navbar.html")
 .then(res => res.text())
 .then(data => {
+  document.getElementById("navbar").innerHTML = data
 
-document.getElementById("navbar").innerHTML = data
-
-const script = document.createElement("script")
-script.src = "/js/navbar.js"
-document.body.appendChild(script)
-
+  const script = document.createElement("script")
+  script.src = "/js/navbar.js"
+  document.body.appendChild(script)
 })
-
 </script>
 
-
 </body>
-<div id="navbar-container"></div>
 </html>

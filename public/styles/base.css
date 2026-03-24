@@ -1,4 +1,6 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap');
+
 /* Сброс стандартных отступов браузера */
 *{
 margin:0;
@@ -9,8 +11,7 @@ box-sizing:border-box;
 /* Базовый стиль страницы */
 body{
 font-family: system-ui, -apple-system, sans-serif;
-background: radial-gradient(circle at top, #1a1430, #0b0b18);
-color:white;
+background: transparent;
 min-height:100vh;
 }
 
@@ -30,6 +31,33 @@ min-height:calc(100vh - 80px);
 }
 
 /* Небольшая плавность для интерфейса */
-button, a{
-transition:0.2s;
+
+html {
+  background: #050816;
+}
+
+/* ===== CUSTOM SCROLLBAR (INVISIBLE STYLE) ===== */
+
+html {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(167, 139, 250, 0.3) transparent;
+}
+
+/* Chrome / Edge / Safari */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* УБИРАЕМ белый фон */
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(167, 139, 250, 0.25);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(167, 139, 250, 0.45);
 }

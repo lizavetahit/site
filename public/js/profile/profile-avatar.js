@@ -232,3 +232,55 @@ function initAvatarCrop(){
   });
 
 }
+function initCropControls() {
+
+  const cropCircle = document.getElementById("cropCircle")
+  const zoomRange = document.getElementById("zoomRange")
+
+  if (!cropCircle || !zoomRange) return
+
+  // 🖱 мышка
+  cropCircle.addEventListener("mousedown", (e) => {
+    startCropDrag(e.clientX, e.clientY)
+  })
+
+  window.addEventListener("mousemove", (e) => {
+    moveCropDrag(e.clientX, e.clientY)
+  })
+
+  window.addEventListener("mouseup", () => {
+    endCropDrag()
+  })
+
+  // 📱 тач
+  cropCircle.addEventListener("touchstart", (e) => {
+    if (!e.touches[0]) return
+    startCropDrag(e.touches[0].clientX, e.touches[0].clientY)
+  })
+
+  window.addEventListener("touchmove", (e) => {
+    if (!e.touches[0]) return
+    moveCropDrag(e.touches[0].clientX, e.touches[0].clientY)
+  })
+
+  window.addEventListener("touchend", () => {
+    endCropDrag()
+  })
+
+  // 🔍 зум
+  zoomRange.addEventListener("input", () => {
+
+    const oldScale = cropState.scale
+    const newScale = Number(zoomRange.value)
+
+    const ratio = newScale / oldScale
+
+    cropState.x *= ratio
+    cropState.y *= ratio
+
+    cropState.scale = newScale
+
+    updateCropImageTransform()
+  })
+
+}

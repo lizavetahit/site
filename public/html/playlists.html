@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Плейлисты</title>
+
+  <link rel="stylesheet" href="/styles/base.css" />
+  <link rel="stylesheet" href="/styles/navbar.css" />
+  <link rel="stylesheet" href="/styles/style.css" />
+  <link rel="stylesheet" href="/styles/playlists.css" />
+</head>
+
+<body>
+  <div class="video-background">
+    <video autoplay muted loop playsinline id="background-video">
+      <source src="/images/bg.mp4" type="video/mp4" />
+    </video>
+  </div>
+
+  <div id="navbar"></div>
+
+  <main class="page">
+    <section class="playlists-screen" id="playlistsScreen">
+      <div class="page-header">
+        <h1>Плейлисты</h1>
+        <button class="create-btn" type="button">+ Создать плейлист</button>
+      </div>
+
+      <div class="playlists-grid"></div>
+    </section>
+
+    <section class="playlist-view hidden" id="playlistView">
+      <button class="back-btn" type="button">← Назад</button>
+
+      <div class="playlist-view-header">
+        <div class="playlist-cover large" id="viewCover"></div>
+
+        <div class="playlist-meta">
+          <p class="playlist-label">Плейлист</p>
+          <h2 id="viewTitle">Плейлист</h2>
+          <p id="viewCount">0 треков</p>
+        </div>
+      </div>
+
+      <div class="tracks-box">
+        <div class="empty-tracks">
+          <p>Здесь пока нет треков</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="playlistModal">
+    <div class="modal-overlay"></div>
+
+    <div class="modal-content">
+      <h2>Новый плейлист</h2>
+
+      <input
+        type="text"
+        id="playlistName"
+        placeholder="Название плейлиста"
+        maxlength="40"
+      />
+
+      <div class="modal-actions">
+        <button class="cancel-btn" type="button">Отмена</button>
+        <button class="save-btn" type="button">Создать</button>
+      </div>
+    </div>
+  </div>
+
+  <input
+    type="file"
+    id="coverInput"
+    accept="image/*"
+    hidden
+  />
+
+  <script src="/js/navbar.js"></script>
+  <script src="/js/playlists.js"></script>
+</body>
+</html>

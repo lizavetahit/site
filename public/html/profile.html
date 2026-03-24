@@ -9,6 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Профиль</title>
 
+  <link rel="stylesheet" href="/styles/base.css">
   <link rel="stylesheet" href="/styles/style.css" />
   <link rel="stylesheet" href="/styles/profile.css" />
   <link rel="stylesheet" href="/styles/navbar.css">
@@ -18,6 +19,13 @@
   />
 </head>
 <body>
+<!-- 🔥 ВИДЕО ФОН -->
+<div class="video-background">
+  <video autoplay muted loop playsinline id="background-video">
+    <source src="/images/bg.mp4" type="video/mp4">
+  </video>
+</div>
+
   <div id="navbar"></div>
   <script>
 
@@ -251,6 +259,7 @@ document.body.appendChild(script)
         id="postText"
         class="post-textarea"
         placeholder="Что нового?"
+        maxlength="500"
       ></textarea>
 
       <div id="editorDropzone" class="editor-dropzone">

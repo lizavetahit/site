@@ -28,6 +28,7 @@ const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public")));
 
 function getUserIdFromToken(req) {
@@ -398,6 +399,211 @@ LIMIT 50
 
 res.json(posts.rows)
 
+})
+
+
+const tracksFile = path.join(__dirname, "../data/tracks.json")
+
+function readTracks() {
+  if (!fs.existsSync(tracksFile)) return []
+  return JSON.parse(fs.readFileSync(tracksFile))
+}
+
+function writeTracks(data) {
+  fs.writeFileSync(tracksFile, JSON.stringify(data, null, 2))
+}
+
+// 🎧 загрузка трека
+app.post("/api/tracks", upload.fields([
+  { name: "audio", maxCount: 1 },
+  { name: "cover", maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const tracks = readTracks();
+    const id = Date.now();
+
+    const audioFile = req.files?.audio?.[0] || null;
+    const coverFile = req.files?.cover?.[0] || null;
+
+    const artist = String(req.body.artist || "").trim();
+    const title = String(req.body.title || "").trim();
+    const soundcloudUrl = String(req.body.soundcloud || "").trim();
+    const coverUrlFromClient = req.body.coverUrl || null;
+
+    if (!audioFile && !soundcloudUrl) {
+      return res.status(400).json({
+        message: "Нужно добавить либо аудиофайл, либо ссылку SoundCloud"
+      });
+    }
+
+    if (!artist || !title) {
+      return res.status(400).json({
+        message: "Заполни автора и название трека"
+      });
+    }
+
+    let audioUrl = null;
+    let coverUrl = null;
+
+    // сохраняем аудио, только если файл реально есть
+    if (audioFile) {
+      const ext = path.extname(audioFile.originalname) || ".mp3";
+      const audioName = `track-${id}${ext}`;
+      const audioPath = path.join(__dirname, "../public/uploads/tracks/audio", audioName);
+
+      fs.writeFileSync(audioPath, audioFile.buffer);
+      audioUrl = `/uploads/tracks/audio/${audioName}`;
+    }
+
+    // сохраняем обложку, если загрузили файл
+if (coverFile && coverFile.buffer) {
+  try {
+    const coverName = `cover-${id}.webp`;
+    const coverDir = path.join(__dirname, "../public/uploads/tracks/covers");
+    const coverPath = path.join(coverDir, coverName);
+
+    // 🔥 создаём папку если нет
+    if (!fs.existsSync(coverDir)) {
+      fs.mkdirSync(coverDir, { recursive: true });
+    }
+
+    await sharp(coverFile.buffer)
+      .resize(500, 500, { fit: "cover" })
+      .webp({ quality: 90 })
+      .toFile(coverPath);
+
+    coverUrl = `/uploads/tracks/covers/${coverName}`;
+  } catch (err) {
+    console.error("Cover upload error:", err);
+  }
+}
+
+// 🔥 ЕСЛИ ОБЛОЖКА С SOUNDCLOUD
+else if (coverUrlFromClient) {
+  coverUrl = coverUrlFromClient;
+}
+
+    const newTrack = {
+      id,
+      artist,
+      title,
+      cover: coverUrl,
+      audio: audioUrl,
+      soundcloud: soundcloudUrl || null,
+      createdAt: new Date().toISOString()
+    };
+
+    tracks.push(newTrack);
+    writeTracks(tracks);
+
+    res.json({
+      success: true,
+      track: newTrack
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Upload failed" });
+  }
+});
+
+
+// 📜 очередь
+app.get("/api/tracks/queue", (req, res) => {
+  const tracks = readTracks()
+  res.json(tracks)
+})
+
+
+// 🗑 удалить трек
+app.delete("/api/tracks/:id", (req, res) => {
+
+  const id = Number(req.params.id)
+  let tracks = readTracks()
+
+  const track = tracks.find(t => t.id === id)
+
+  if (!track) {
+    return res.status(404).json({ message: "Track not found" })
+  }
+
+  // удаляем файлы
+ // удаляем аудио
+if (track.audio) {
+  const audioPath = path.join(__dirname, "../public", track.audio)
+
+  if (fs.existsSync(audioPath)) {
+    fs.unlinkSync(audioPath)
+  }
+}
+
+// удаляем обложку ТОЛЬКО если она локальная
+if (track.cover && track.cover.startsWith("/uploads")) {
+  const coverPath = path.join(__dirname, "../public", track.cover)
+
+  if (fs.existsSync(coverPath)) {
+    fs.unlinkSync(coverPath)
+  }
+}
+
+  tracks = tracks.filter(t => t.id !== id)
+
+  writeTracks(tracks)
+
+  res.json({ success: true })
+
+})
+
+app.get("/api/soundcloud", async (req, res) => {
+  try {
+    const url = String(req.query.url || "").trim();
+
+    if (!url) {
+      return res.status(400).json({ message: "No URL" });
+    }
+
+    const oembedUrl =
+      `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`;
+
+    const response = await fetch(oembedUrl);
+
+    if (!response.ok) {
+      return res.status(400).json({ message: "SoundCloud link not recognized" });
+    }
+
+    const data = await response.json();
+
+    let artist = data.author_name || "";
+    let title = data.title || "";
+    const artwork = data.thumbnail_url || null;
+
+    // чистим title от мусора
+    // пример: "Stream сладких снов(weizz) by хизаво"
+    title = title.replace(/^Stream\s+/i, "").trim();
+    title = title.replace(/\s+by\s+.+$/i, "").trim();
+    title = title.replace(/\s*\|\s*Listen.*$/i, "").trim();
+
+    res.json({
+      artist,
+      title,
+      artwork
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error parsing SoundCloud" });
+  }
+});
+
+app.get("/api/tracks/:id", (req, res) => {
+  const id = Number(req.params.id)
+  const tracks = readTracks()
+
+  const track = tracks.find(t => t.id === id)
+
+  if (!track) {
+    return res.status(404).json({ message: "Track not found" })
+  }
+
+  res.json(track)
 })
 
 app.listen(3000, () => {

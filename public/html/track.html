@@ -1,58 +1,144 @@
-
+<link rel="stylesheet" href="/styles/track.css">
 
 <div id="navbar"></div>
 
 <div class="track-page">
 
+<div class="track-card">
+
 <div class="track-header">
 
-<img src="https://picsum.photos/400/250" class="track-cover">
+<div class="track-player">
+
+<iframe 
+id="soundcloud-player"
+width="100%" 
+height="120"
+scrolling="no"
+frameborder="no"
+allow="autoplay"
+src="">
+</iframe>
+
+</div>   
+
+<img id="track-cover" class="track-cover">
 
 <div class="track-info">
-<h1>Artist — Track Name</h1>
+
+<h1 id="track-title">Track Name</h1>
+<div class="track-artist" id="track-artist">Artist Name</div>
 
 <div class="track-rating">
-⭐ Общая оценка: <b>92</b>
+⭐ Общая оценка <span id="track-score">0</span>
+</div>
+
+<div class="track-reactions">
+<div class="reaction">👍 <span id="likes">0</span></div>
+<div class="reaction">👎 <span id="dislikes">0</span></div>
 </div>
 
 </div>
 
 </div>
 
-<h2>Критерии оценки</h2>
+
+<h2 class="section-title">Критерии оценки</h2>
 
 <div class="criteria">
 
 <div class="criterion">
-<span>Мелодия</span>
-<b>90</b>
+
+<div class="criterion-name">
+<span class="criterion-title">Рифмы и образы</span>
+<span class="criterion-desc">Текст, панчи, образность</span>
 </div>
+
+<div class="criterion-bar">
+
+<div class="bar">
+<div class="bar-fill" style="width:70%"></div>
+</div>
+
+<div class="bar-value">7</div>
+
+</div>
+
+</div>
+
 
 <div class="criterion">
-<span>Сведение</span>
-<b>87</b>
+<div class="criterion-name">СТРУКТУРА И РИТМИКА</div>
+<div class="criterion-bar">
+<div class="bar">
+<div class="bar-fill" style="width:80%"></div>
 </div>
+<div class="bar-value">8</div>
+</div>
+</div>
+
 
 <div class="criterion">
-<span>Идея</span>
-<b>95</b>
+<div class="criterion-name">РЕАЛИЗАЦИЯ СТИЛЯ</div>
+<div class="criterion-bar">
+<div class="bar">
+<div class="bar-fill" style="width:60%"></div>
+</div>
+<div class="bar-value">6</div>
+</div>
+</div>
+
+
+<div class="criterion">
+<div class="criterion-name">ИНДИВИДУАЛЬНОСТЬ И ХАРИЗМА</div>
+<div class="criterion-bar">
+<div class="bar">
+<div class="bar-fill" style="width:90%"></div>
+</div>
+<div class="bar-value">9</div>
+</div>
+</div>
+
+
+<div class="criterion">
+<div class="criterion-name">АТМОСФЕРА И ВАЙБ</div>
+<div class="criterion-bar">
+<div class="bar">
+<div class="bar-fill" style="width:80%"></div>
+</div>
+<div class="bar-value">8</div>
+</div>
+</div>
+
+
+<div class="criterion">
+<div class="criterion-name">ЗАПОМИНАЕМОСТЬ</div>
+<div class="criterion-bar">
+<div class="bar">
+<div class="bar-fill" style="width:70%"></div>
+</div>
+<div class="bar-value">7</div>
+</div>
 </div>
 
 </div>
 
-<h2>Комментарии</h2>
 
-<div class="comments">
+<h2 class="section-title">Комментарии</h2>
 
-<div class="comment">
-<b>ProducerX</b>
-<p>Очень сильный дроп 🔥</p>
+<div class="comment-form">
+
+<textarea id="comment-input" placeholder="Написать комментарий..."></textarea>
+
+<button id="send-comment">
+Отправить
+</button>
+
 </div>
 
-<div class="comment">
-<b>DJ Alex</b>
-<p>Немного перегружен бас</p>
+<div id="comments"></div>
 </div>
+<script src="/js/track.js" defer></script>
 
 </div>
 

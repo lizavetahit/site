@@ -7,10 +7,17 @@
 <link rel="stylesheet" href="/styles/base.css">
 <link rel="stylesheet" href="/styles/navbar.css">
 <link rel="stylesheet" href="/styles/register.css">
+<link rel="stylesheet" href="/styles/style.css">
 
 </head>
 
 <body>
+
+<div class="video-background">
+  <video autoplay muted loop playsinline id="background-video">
+    <source src="/images/bg.mp4" type="video/mp4">
+  </video>
+</div>    
 
 <div id="navbar"></div>
 
@@ -31,6 +38,10 @@
 <div id="error" class="error"></div>
 
 <button type="submit">Войти</button>
+
+<p class="auth-switch">
+  Нет аккаунта? <a href="/html/register.html">Зарегистрироваться</a>
+</p>
 
 </form>
 

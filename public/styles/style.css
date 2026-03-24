@@ -1,3 +1,7 @@
+html, body {
+  background: #050816; /* ТЕМНЫЙ ФОН ВЕЗДЕ */
+}
+
 *{
 margin:0;
 padding:0;
@@ -5,50 +9,61 @@ box-sizing:border-box;
 }
 
 body{
-font-family:Segoe UI;
-background:#0f0f17;
-color:white;
+  font-family:Segoe UI;
+  background: transparent; /* ВАЖНО */
+  color:white;
 }
 
-/* NAVBAR */
-
-.navbar{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:20px 60px;
-background:#151522;
-border-bottom:1px solid #222;
+html{
+  background:#050816; /* или #000 если хочешь темнее */
 }
 
-.logo{
-font-size:24px;
-font-weight:bold;
-color:#c084fc;
-text-decoration:none;
-cursor:pointer;
-transition:0.2s;
+/* Контейнер для видео на фоне */
+.video-background{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  z-index:-999; /* ВАЖНО */
+  overflow:hidden;
 }
 
-.logo:hover{
-color:#a855f7;
-transform:scale(1.05);
+#background-video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  filter:blur(8px);
 }
 
-.logo-symbol{
-color:#7c3aed;
-margin-right:6px;
+/* Видео на фоне */
+#background-video{
+width:100%;
+height:100%;
+object-fit:cover;
+filter:blur(8px);
 }
 
-nav a{
-margin-left:25px;
-text-decoration:none;
-color:#ddd;
-font-weight:500;
+/* Затемнение поверх видео */
+.video-background::after{
+content:"";
+position:absolute;
+inset:0;
+background:transparent; /* было 0.35 */
+z-index:1;
 }
 
-nav a:hover{
-color:white;
+/* Контейнер, куда подгружается navbar */
+#navbar{
+position:relative;
+z-index:1000;
+}
+
+/* Адаптивность для видео */
+@media (max-width:768px){
+#background-video{
+filter:blur(5px);
+}
 }
 
 /* LAYOUT */
@@ -59,7 +74,7 @@ grid-template-columns:280px 1fr 280px;
 gap:40px;
 max-width:1400px;
 margin:auto;
-padding:40px 20px;
+padding:140px 20px 40px;
 }
 
 /* LEFT PANEL */
@@ -69,39 +84,66 @@ margin-bottom:20px;
 }
 
 .track-card{
-background:#1a1a28;
-padding:12px;
-border-radius:12px;
-margin-bottom:15px;
-transition:0.25s;
-border:1px solid transparent;
+background:rgba(20,20,38,0.6); /* чуть прозрачнее */
+backdrop-filter:blur(14px);
+
+padding:14px;
+border-radius:20px;
+margin-bottom:18px;
+
+transition: all 0.3s ease;
+
+border:1px solid rgba(255,255,255,0.06);
 cursor:pointer;
+
+position:relative;
+overflow:hidden;
+}
+
+/* мягкий glow */
+.track-card::before{
+content:"";
+position:absolute;
+inset:0;
+background: radial-gradient(circle at top left, rgba(167,139,250,0.25), transparent 60%);
+opacity:0;
+transition:0.3s;
+}
+
+.track-card:hover::before{
+opacity:1;
 }
 
 .track-card:hover{
-transform:scale(1.03);
-border:1px solid #8d0d87;
-box-shadow:0 0 10px rgba(124,58,237,0.4);
+transform: translateY(-6px) scale(1.02);
+border:1px solid rgba(167,139,250,0.5);
+box-shadow:0 10px 30px rgba(124,58,237,0.25);
 }
 
 .track-card img{
 width:100%;
-border-radius:8px;
-margin-bottom:8px;
+border-radius:14px;
+margin-bottom:10px;
+
+transition:0.3s ease;
+}
+
+.track-card:hover img{
+transform:scale(1.05);
+filter:brightness(1.1);
 }
 
 .track-card span{
 color:#ffd166;
+font-weight:600;
+
+text-shadow:0 0 8px rgba(255,209,102,0.6);
 }
 
 .track-link{
 display:block;
 text-decoration:none;
 color:inherit;
-}
-
-.track-card:hover{
-transform:scale(1.03);
 }
 
 /* FEED */
@@ -115,9 +157,11 @@ gap:20px;
 /* CREATE POST */
 
 .create-post{
-background:#1a1a28;
+background:rgba(20,20,38,0.88);
+backdrop-filter:blur(10px);
 padding:20px;
-border-radius:12px;
+border-radius:18px;
+border:1px solid rgba(255,255,255,0.06);
 }
 
 .create-post textarea{
@@ -125,7 +169,7 @@ width:100%;
 height:80px;
 background:#101018;
 border:none;
-border-radius:8px;
+border-radius:12px;
 padding:10px;
 color:white;
 margin-bottom:10px;
@@ -135,7 +179,7 @@ margin-bottom:10px;
 background:#7c3aed;
 border:none;
 padding:10px 20px;
-border-radius:8px;
+border-radius:12px;
 color:white;
 cursor:pointer;
 }
@@ -143,22 +187,85 @@ cursor:pointer;
 /* POST */
 
 .post{
-background:#1a1a28;
-padding:18px;
-border-radius:12px;
+background: rgba(20,20,38,0.55);
+backdrop-filter: blur(16px);
+
+padding:20px;
+border-radius:22px;
+
+border:1px solid rgba(255,255,255,0.06);
+
+transition: all 0.3s ease;
+
+position:relative;
+overflow:hidden;
+}
+
+.post{
+animation: fadeInUp 0.4s ease;
+}
+
+@keyframes fadeInUp{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+/* glow */
+.post::before{
+content:"";
+position:absolute;
+inset:0;
+background: radial-gradient(circle at right, rgba(124,58,237,0.2), transparent 60%);
+opacity:0;
+transition:0.3s;
+}
+
+.post:hover::before{
+opacity:1;
+}
+
+.post:hover{
+transform: translateY(-4px);
+box-shadow:0 15px 40px rgba(0,0,0,0.5);
+}
+
+.post:hover{
+background:rgba(28,28,52,0.92);
 }
 
 .post-header{
 display:flex;
 align-items:center;
-gap:10px;
-margin-bottom:10px;
+gap:12px;
+margin-bottom:12px;
 }
 
 .post-header img{
-width:40px;
-height:40px;
+width:42px;
+height:42px;
 border-radius:50%;
+object-fit:cover;
+}
+
+.post-user{
+display:flex;
+flex-direction:column;
+}
+
+.post-name{
+font-weight:600;
+font-size:15px;
+}
+
+.post-time{
+font-size:12px;
+color:#aaa;
 }
 
 .post-author{
@@ -173,6 +280,12 @@ color:white;
 opacity:0.8;
 }
 
+.post p{
+font-size:15px;
+line-height:1.5;
+color:#ddd;
+}
+
 .author-name{
 font-weight:600;
 }
@@ -183,18 +296,29 @@ gap:10px;
 margin-top:10px;
 }
 
-.post-actions button{
-background:#111120;
+.post-actions{
+display:flex;
+gap:10px;
+margin-top:14px;
+}
+
+.action-btn{
+background: rgba(255,255,255,0.05);
 border:none;
+
 padding:6px 12px;
-border-radius:6px;
-color:white;
+border-radius:10px;
+
+color:#ccc;
+font-size:13px;
+
 cursor:pointer;
 transition:0.2s;
 }
 
-.post-actions button:hover{
-background:#2a2a3a;
+.action-btn:hover{
+background: rgba(167,139,250,0.2);
+color:white;
 }
 
 .comments{
@@ -207,7 +331,7 @@ gap:8px;
 .comment{
 background:#101018;
 padding:8px 10px;
-border-radius:6px;
+border-radius:8px;
 font-size:14px;
 }
 
@@ -221,7 +345,7 @@ margin-top:10px;
 flex:1;
 background:#101018;
 border:none;
-border-radius:6px;
+border-radius:8px;
 padding:8px;
 color:white;
 }
@@ -230,7 +354,7 @@ color:white;
 background:#7c3aed;
 border:none;
 padding:8px 14px;
-border-radius:6px;
+border-radius:8px;
 color:white;
 cursor:pointer;
 }
@@ -238,7 +362,7 @@ cursor:pointer;
 .comment-btn{
 background:#111120;
 padding:6px 12px;
-border-radius:6px;
+border-radius:8px;
 cursor:pointer;
 display:inline-block;
 }
@@ -264,6 +388,7 @@ margin-top:10px;
 display:none;
 margin-top:15px;
 }
+
 /* RIGHT PANEL */
 
 .right-panel h2{
@@ -273,33 +398,108 @@ margin-bottom:20px;
 .artist{
 display:flex;
 align-items:center;
-gap:15px;
-margin-bottom:15px;
-background:#1a1a28;
-padding:10px;
-border-radius:10px;
+justify-content:space-between;
 
-border:1px solid transparent;
+gap:14px;
+margin-bottom:14px;
+
+padding:12px 16px;
+
+border-radius:999px;
+
+background: rgba(20,20,38,0.55);
+backdrop-filter: blur(14px);
+
+border:1px solid rgba(255,255,255,0.06);
 
 transition: all 0.25s ease;
 cursor:pointer;
+
+position:relative;
+overflow:hidden;
+}
+
+/* glow */
+.artist::before{
+content:"";
+position:absolute;
+inset:0;
+background: radial-gradient(circle at left, rgba(167,139,250,0.25), transparent 60%);
+opacity:0;
+transition:0.3s;
+}
+
+.artist:hover::before{
+opacity:1;
 }
 
 .artist:hover{
-border:1px solid #8d0d87;
-box-shadow:0 0 10px rgba(124,58,237,0.4);
-transform:translateY(-2px);
+transform: translateX(6px);
+border:1px solid rgba(167,139,250,0.5);
+box-shadow:0 0 20px rgba(124,58,237,0.25);
+}
+
+.artist-left{
+display:flex;
+align-items:center;
+gap:12px;
 }
 
 .artist img{
-width:50px;
-height:50px;
+width:44px;
+height:44px;
 border-radius:50%;
-transition:0.25s;
+object-fit:cover;
 }
 
-.artist:hover img{
-transform:scale(1.08);
+/* имя */
+.artist-name{
+font-weight:600;
+font-size:14px;
+}
+
+/* мелкий текст */
+.artist-meta{
+font-size:12px;
+color:#aaa;
+}
+
+/* рейтинг (#1, #2...) */
+.artist-rank{
+font-size:13px;
+font-weight:700;
+
+color:#a78bfa;
+
+background: rgba(167,139,250,0.15);
+padding:4px 8px;
+border-radius:8px;
+}
+
+/* статус (онлайн) */
+.artist-status{
+width:8px;
+height:8px;
+border-radius:50%;
+}
+
+.artist-status.online{
+background:#22c55e;
+box-shadow:0 0 8px #22c55e;
+}
+
+.artist:first-child{
+border:1px solid rgba(255,215,0,0.4);
+box-shadow:0 0 20px rgba(255,215,0,0.15);
+}
+
+.artist{
+animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn{
+from{opacity:0; transform:translateX(10px);}
+to{opacity:1; transform:translateX(0);}
 }
 
 .feed-title{
@@ -307,16 +507,6 @@ margin-bottom:20px;
 font-size:22px;
 }
 
-.post{
-background:#1a1a28;
-padding:18px;
-border-radius:12px;
-transition:0.3s;
-}
-
-.post:hover{
-background:#202034;
-}
 /* TRACK PAGE */
 
 .track-page{
@@ -363,3 +553,8 @@ background:#1a1a28;
 padding:15px;
 border-radius:10px;
 }
+
+.page{
+  padding-top: 80px;
+}
+

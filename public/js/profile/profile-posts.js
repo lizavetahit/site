@@ -137,15 +137,16 @@ container.innerHTML += `
 
 </div> <!-- ВОТ ЭТОЙ СТРОКИ У ТЕБЯ НЕ ХВАТАЛО -->
 
-<div class="post-content">
+<div class="post-text">
+  <p>${post.content || ""}</p>
+</div>
 
-${post.content ? `<p class="post-text">${post.content}</p>` : ""}
-
-${mediaHTML ? `${mediaHTML}` : ""}
+<!-- 🔥 МЕДИА НИЖЕ -->
+${mediaHTML ? mediaHTML : ""}
 
 </div>
 
-</div>
+
 `
 
 })

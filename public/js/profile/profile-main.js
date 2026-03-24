@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-const token = localStorage.getItem("token")
+
 
 if (!token) {
   window.location.href = "/html/login.html"
@@ -9,6 +9,7 @@ if (!token) {
 
 initProfileUser()
 initAvatarCrop()
+initCropControls()
 initPosts()
 initPostEditor()
 initTabs()

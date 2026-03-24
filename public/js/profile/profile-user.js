@@ -138,7 +138,7 @@ document.getElementById("avatar").src = avatar + "?t=" + Date.now();
     await loadTracks();
   } catch (error) {
     console.error(error);
-    setText("profileError", "Не удалось загрузить профиль");
+    setText("profileError", );
   }
 }
 
@@ -285,6 +285,15 @@ async function saveProfile() {
 
 }
 
+
 function initProfileUser(){
   loadProfile()
 }
+
+window.openEdit = openEdit
+window.closeEdit = closeEdit
+window.saveProfile = saveProfile
+
+window.editUsername = editUsername
+window.saveUsername = saveUsername
+window.cancelUsernameEdit = cancelUsernameEdit

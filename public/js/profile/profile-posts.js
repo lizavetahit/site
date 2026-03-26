@@ -12,6 +12,7 @@ if(!res.ok){
   }
 
 const posts = await res.json()
+window.currentPosts = posts
 
 const container = document.getElementById("postsContainer")
 if(!container) return
@@ -155,23 +156,34 @@ document.querySelectorAll(".volume").forEach(slider=>{
 updateVolumeSlider(slider)
 })
 
-document.querySelectorAll(".video-player").forEach(player=>{
+const players = document.querySelectorAll(".video-player")
 
-const video = player.querySelector("video")
-const slider = player.querySelector(".volume")
+if(players.length){
+  players.forEach(player => {
 
-if(video && slider){
-video.volume = slider.value
+    if(!player) return
+
+    const video = player.querySelector("video")
+    const slider = player.querySelector(".volume")
+
+    if(video && slider){
+      video.volume = slider.value
+    }
+
+  })
 }
 
-})
-
-document.querySelectorAll(".video-element").forEach(video=>{
-videoObserver.observe(video)
-})
-
-
 }
+
+const videos = document.querySelectorAll(".video-element")
+
+if(videos.length){
+  videos.forEach(video=>{
+    if(video) videoObserver.observe(video)
+  })
+}
+
+
 
 const videoObserver = new IntersectionObserver(entries => {
 
@@ -192,17 +204,28 @@ threshold:0.4
 function togglePostMenu(id){
 
 const menu = document.getElementById("postMenu-"+id)
-
 if(!menu) return
 
-const isOpen = !menu.classList.contains("hidden")
+const isOpen = menu.style.display === "flex"
 
+// закрываем все
 document.querySelectorAll(".post-menu").forEach(m=>{
+m.style.display = "none"
 m.classList.add("hidden")
 })
 
 if(!isOpen){
+menu.style.display = "flex"
 menu.classList.remove("hidden")
+}
+
+document.querySelectorAll(".post-card").forEach(p=>{
+p.classList.remove("active")
+})
+
+const card = menu.closest(".post-card")
+if(card){
+card.classList.add("active")
 }
 
 }
@@ -237,12 +260,66 @@ function pinPost(id){
 alert("Функция закрепления будет добавлена на сервере")
 }
 
-function archivePost(id){
-alert("Архив будет добавлен позже")
+async function archivePost(id){
+
+const token = localStorage.getItem("token")
+
+try{
+
+const res = await fetch("/archive-post/"+id,{
+method:"PUT",
+headers:{
+Authorization:"Bearer "+token
+}
+})
+
+if(!res.ok){
+alert("Ошибка архивации")
+return
+}
+
+loadPosts()
+
+}catch(err){
+console.error(err)
+alert("Ошибка архивации")
+}
+
 }
 
 function editPost(id){
-alert("Редактирование будет добавлено позже")
+
+  const post = window.currentPosts?.find(p => p.id === id)
+  if(!post) return
+
+  const modal = document.getElementById("postModal")
+  if(!modal) return
+
+  // 👉 включаем режим редактирования
+  modal.dataset.editId = id
+
+  // 👉 меняем заголовок
+  const title = document.querySelector(".post-modal-title")
+  if(title){
+    title.innerText = "Редактировать публикацию"
+  }
+
+  // 👉 текст
+  const text = document.getElementById("postText")
+  if(text){
+    text.value = post.content || ""
+  }
+
+  // 🔥 ВАЖНО: подгружаем медиа обратно
+  if(post.media_type === "image"){
+    loadImageFromUrl(post.media_url)
+  }
+
+  if(post.media_type === "video"){
+    loadVideoFromUrl(post.media_url)
+  }
+
+  openPostModal()
 }
 
 function initPosts(){
@@ -286,9 +363,11 @@ document.addEventListener("timeupdate",function(e){
 if(e.target.tagName!=="VIDEO") return
 
 const video=e.target
-const player=video.closest(".video-player")
+const player = video.closest(".video-player")
+if(!player) return
 
-const bar=player.querySelector(".video-progress-bar")
+const bar = player.querySelector(".video-progress-bar")
+if(!bar) return
 const current=player.querySelector(".current")
 const duration=player.querySelector(".duration")
 
@@ -451,3 +530,21 @@ window.togglePostMenu = togglePostMenu
 window.deletePost = deletePost
 window.archivePost = archivePost
 window.editPost = editPost
+
+function loadImageFromUrl(url) {
+  fetch(url)
+    .then(res => res.blob())
+    .then(blob => {
+      const file = new File([blob], "image.jpg", { type: blob.type });
+      initImageEditor(file);
+    });
+}
+
+function loadVideoFromUrl(url) {
+  fetch(url)
+    .then(res => res.blob())
+    .then(blob => {
+      const file = new File([blob], "video.mp4", { type: blob.type });
+      initVideoEditor(file);
+    });
+}

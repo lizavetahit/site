@@ -26,20 +26,8 @@
   </video>
 </div>
 
-  <div id="navbar"></div>
-  <script>
-
-fetch("/html/components/navbar.html")
-.then(res => res.text())
-.then(data => {
-
-document.getElementById("navbar").innerHTML = data
-
-const script = document.createElement("script")
-script.src = "/js/navbar.js"
-document.body.appendChild(script)
-
-})
+<div id="navbar"></div>
+<script src="/js/navbar.js"></script>
 
 
 </script>
@@ -66,6 +54,7 @@ document.body.appendChild(script)
         <div class="profile-info">
           <div class="username-row">
             <h2 id="username"></h2>
+            <p id="usernameTag" class="username-tag"></p>
 
             <button class="icon-btn edit-username-btn" onclick="editUsername()" title="Изменить ник">
               <i class="fa-solid fa-pen"></i>
@@ -131,12 +120,10 @@ document.body.appendChild(script)
 
 <div class="posts-title">
 
-<h2>Посты</h2>
-<span class="posts-subtitle">Лента публикаций</span>
 
 </div>
 
-<button class="create-post-btn" onclick="openPostModal()">
+<button class="create-post-btn" onclick="openCreatePostModal()">
 
 <i class="fa-solid fa-plus"></i>
 <span>Пост</span>
@@ -178,6 +165,14 @@ document.body.appendChild(script)
       <h3>Редактировать профиль</h3>
 
       <input id="editUsername" type="text" placeholder="Ник" />
+      <div class="input-group">
+  <input 
+    id="editUsernameTag" 
+    type="text" 
+    placeholder="Username (например: username)"
+  >
+  <div id="usernameTagStatus" class="input-status"></div>
+</div>
       <textarea id="editBio" rows="4" maxlength="200" placeholder="Расскажите о себе"></textarea>
 
 <div class="bio-counter">

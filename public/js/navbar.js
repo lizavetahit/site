@@ -1,36 +1,97 @@
-async function loadNavbar(){
+async function loadNavbar() {
+  const container = document.getElementById("navbar");
+  if (!container) return;
 
-const res = await fetch("/html/components/navbar.html")
-const html = await res.text()
+  try {
+    const res = await fetch("/html/components/navbar.html");
+    const html = await res.text();
 
-document.getElementById("navbar").innerHTML = html
+    container.innerHTML = html;
 
-initNavbar()
-
+    await loadNavbarUser();
+    initDropdown();
+  } catch (err) {
+    console.error("Navbar load error:", err);
+  }
 }
 
-function initNavbar(){
+async function loadNavbarUser() {
+  const token = localStorage.getItem("token");
 
-const token = localStorage.getItem("token")
+  const navGuest = document.getElementById("navGuest");
+  const navUser = document.getElementById("navUser");
+  const navAvatar = document.getElementById("navAvatar");
 
-const authLinks = document.getElementById("authLinks")
-const profileLinks = document.getElementById("profileLinks")
+  if (!navGuest || !navUser || !navAvatar) return;
 
-if(!authLinks || !profileLinks) return
+  if (!token) {
+    navGuest.classList.remove("hidden");
+    navUser.classList.add("hidden");
+    return;
+  }
 
-if(token){
-authLinks.style.display = "none"
-profileLinks.style.display = "inline"
-}else{
-authLinks.style.display = "inline"
-profileLinks.style.display = "none"
+  try {
+    const res = await fetch("/me", {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    });
+
+    if (!res.ok) throw new Error("Unauthorized");
+
+    const user = await res.json();
+    console.log("USER:", user);
+
+    if (user.avatar) {
+  navAvatar.src = user.avatar + "?t=" + Date.now();
+} else {
+  navAvatar.src = "/images/default-avatar.jpg";
 }
 
+    navGuest.classList.add("hidden");
+    navUser.classList.remove("hidden");
+  } catch (err) {
+    console.error("Navbar user error:", err);
+
+    navGuest.classList.remove("hidden");
+    navUser.classList.add("hidden");
+  }
 }
 
-function logout(){
-localStorage.removeItem("token")
-window.location.href="/html/index.html"
+// 🔥 dropdown логика
+function initDropdown() {
+  const btn = document.getElementById("navUserBtn");
+  const dropdown = document.getElementById("navDropdown");
+
+  if (!btn || !dropdown) return;
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle("active");
+  });
+
+  document.addEventListener("click", () => {
+    dropdown.classList.remove("active");
+  });
 }
 
-loadNavbar()
+// переходы
+function goToProfile() {
+  window.location.href = "/html/profile.html";
+}
+
+function goToSettings() {
+  window.location.href = "/html/settings.html";
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "/html/index.html";
+}
+
+window.goToProfile = goToProfile;
+window.goToSettings = goToSettings;
+window.logout = logout;
+
+// запуск
+loadNavbar();

@@ -19,28 +19,26 @@ gap:18px;
 
 }
 
-.track-card{
+.track-card {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 
-display:flex;
-justify-content:space-between;
-align-items:center;
+  background: rgba(69, 34, 46, 0.6);
 
-background:#151528;
+  padding:16px 18px;
 
-padding:16px 18px;
+  border-radius:14px;
 
-border-radius:10px;
+  border:1px solid rgba(255,255,255,0.05);
 
-border:1px solid rgba(255,255,255,0.05);
-
-transition:0.2s;
-
+  transition:0.2s;
 }
 
-.track-card:hover{
-
-background:#1c1c35;
-
+.track-card:hover {
+  border-color: #b07497;
+  box-shadow: 0 0 0 1px rgba(201, 36, 154, 0.15);
+  transform: translateY(-2px);
 }
 
 .track-left {
@@ -54,6 +52,7 @@ background:#1c1c35;
   height: 100%;
 
   object-fit: cover;
+
   display: block;
 }
 
@@ -71,11 +70,9 @@ font-weight:600;
 
 }
 
-.track-title{
-
-font-size:14px;
-color:#aaa;
-
+.track-title {
+  font-size:14px;
+  color: rgba(255,255,255,0.5);
 }
 
 .track-actions{
@@ -85,48 +82,43 @@ gap:10px;
 
 }
 
-.judge-btn{
+.judge-btn {
+  background: rgba(176,116,151,0.2);
+  border: 1px solid rgba(176,116,151,0.3);
 
-background:#6c4df6;
+  color: white;
 
-border:none;
-color:white;
+  padding:8px 14px;
 
-padding:8px 14px;
+  border-radius:8px;
 
-border-radius:6px;
+  cursor:pointer;
+  font-size:14px;
 
-cursor:pointer;
-
-font-size:14px;
-
+  transition:0.2s;
 }
 
-.judge-btn:hover{
-
-background:#7c63ff;
-
+.judge-btn:hover {
+  background: rgba(176,116,151,0.24);
+border-color: rgba(176,116,151,0.4);
 }
 
-.delete-btn{
+.delete-btn {
+  background: rgba(59, 8, 26, 0.325);
+border: 1px solid rgba(223, 202, 211, 0.159);
 
-background:#2a2a40;
+  color: white;
 
-border:none;
-color:white;
+  padding:8px 12px;
 
-padding:8px 12px;
+  border-radius:8px;
 
-border-radius:6px;
-
-cursor:pointer;
-
+  cursor:pointer;
+  transition:0.2s;
 }
 
-.delete-btn:hover{
-
-background:#ff4d4d;
-
+.delete-btn:hover {
+  background: rgba(176,116,151,0.18);
 }
 
 .cover-wrap {
@@ -134,10 +126,13 @@ background:#ff4d4d;
   height: 60px;
   min-width: 60px;
 
-  border-radius: 10px;
+  border-radius: 12px; /* 🔥 ВОТ ЭТО ТЫ УБРАЛ */
   overflow: hidden;
 
-  background: #111; /* если нет картинки */
+  background: rgba(101, 58, 73, 0.325);
+  border: 1px solid rgba(255,255,255,0.06);
+
+  display: flex;
 }
 
 .track-number {
@@ -146,7 +141,7 @@ background:#ff4d4d;
 
   font-size: 16px;
   font-weight: 600;
-  color: #888;
+  color: rgba(255,255,255,0.35);
 
   text-align: center;
 }

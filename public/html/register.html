@@ -12,9 +12,9 @@
 
 </head>
 
-<script src="/js/navbar.js"></script>
 
 <body>
+
 <div class="video-background">
   <video autoplay muted loop playsinline id="background-video">
     <source src="/images/bg.mp4" type="video/mp4">
@@ -36,8 +36,13 @@
 <label>Имя пользователя</label>
 <input type="text" id="username" placeholder="username">
 
+<label>Username (@)</label>
+<input id="usernameTag" placeholder="например: kirill" />
+<div id="tagStatus" class="tag-status"></div>
+
 <label>Email</label>
 <input type="email" id="email" placeholder="example@mail.com">
+<div id="emailStatus" class="tag-status"></div>
 
 <label>Пароль</label>
 <input type="password" id="password" placeholder="Минимум 8 символов">
@@ -49,18 +54,61 @@
 
 <button type="submit">Зарегистрироваться</button>
 
+
 </form>
 
 <p class="login-link">
 Уже есть аккаунт? <a href="login.html">Войти</a>
 </p>
 
+<div class="tg-login">
+  
+
+  <script async src="https://telegram.org/js/telegram-widget.js?22"
+        data-telegram-login="ritmoriaauthBot"
+        data-size="large"
+        data-userpic="true"
+        data-request-access="write"
+        data-onauth="onTelegramAuth(user)">
+</script>
 </div>
 
 </div>
 
-<script src="../js/register.js"></script>
+</div>
 
+<script src="/js/register.js"></script>
+
+<script>
+fetch("/html/components/navbar.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("navbar").innerHTML = data;
+
+    const script = document.createElement("script");
+    script.src = "/js/navbar.js";
+    document.body.appendChild(script);
+  });
+</script>
+
+
+<div id="codeModal" class="code-modal hidden">
+  <div class="code-modal-content">
+
+    <h3>Подтверди почту</h3>
+    <p>Введите код, отправленный на email</p>
+
+    <input id="codeInput" type="text" placeholder="123456" maxlength="6">
+
+    <div class="code-actions">
+      <button id="confirmCodeBtn">Подтвердить</button>
+      <button onclick="closeCodeModal()" class="cancel">Отмена</button>
+    </div>
+
+    <div id="codeError" class="error"></div>
+
+  </div>
+</div>
 </body>
 
 </html>

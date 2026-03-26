@@ -1,37 +1,33 @@
 <header class="navbar">
+  <a href="/html/index.html" class="logo">
+    <span class="logo-text">#РИТМОРИЯ</span>
+  </a>
 
-<a href="/html/index.html" class="logo">
+  <nav>
+    <a href="/html/index.html">Главная</a>
+    <a href="/html/submit.html">Скинуть трек</a>
+    <a href="/html/discover.html">Дискавер</a>
+    <a href="/html/upload.html" class="upload-link">Загрузить трек</a>
 
-<svg class="logo-icon" viewBox="-49 -49 588 588">
-<path d="M64.333,490h58.401l33.878-137.69h122.259L245.39,490h58.401l33.878-137.69h119.92v-48.162h-108.24l29.2-117.324h79.04
-v-48.162H390.23L424.108,0H365.31l-33.878,138.661H208.79L242.668,0h-58.415l-33.864,138.661H32.411v48.162h106.298l-28.818,117.324
-h-77.48v48.162h65.8L64.333,490z M197.11,186.824h122.642l-29.2,117.324H168.292L197.11,186.824z"/>
-</svg>
+    <!-- Гость -->
+    <div id="navGuest">
+      <a href="/html/login.html">Вход</a>
+      <a href="/html/register.html">Регистрация</a>
+    </div>
 
-<span class="logo-text">РИТМОРИЯ</span>
+    <!-- Пользователь -->
+    <div id="navUser" class="hidden">
+      <div class="nav-user" id="navUserBtn">
+        <img id="navAvatar" class="nav-avatar" src="/images/default-avatar.jpg">
+      </div>
 
-</a>
-
-<nav>
-
-<a href="/html/index.html">Главная</a>
-<a href="/html/submit.html">Скинуть трек</a>
-<a href="/html/discover.html">Дискавер</a>
-<a href="/html/upload.html" class="upload-link">Загрузить трек</a>
-<span id="authLinks">
-
-<a href="/html/login.html">Вход</a>
-<a href="/html/register.html">Регистрация</a>
-
-</span>
-
-<span id="profileLinks" style="display:none">
-
-<a href="/html/profile.html">Профиль</a>
-<a href="#" onclick="logout()">Выйти</a>
-
-</span>
-
-</nav>
-
+      <!-- Dropdown -->
+      <div class="nav-dropdown" id="navDropdown">
+        <div class="dropdown-item" onclick="goToProfile()">Профиль</div>
+        <div class="dropdown-item" onclick="goToSettings()">Настройки</div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item logout" onclick="logout()">Выйти</div>
+      </div>
+    </div>
+  </nav>
 </header>

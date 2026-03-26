@@ -162,7 +162,7 @@ const playerArtist = document.getElementById("playerArtist");
   }
 
   function resetPlayerUI() {
-    playBtn.textContent = "▶";
+    playBtn.classList.remove("playing");
     progress.style.width = "0%";
     currentTimeEl.textContent = "0:00";
     durationEl.textContent = "0:00";
@@ -196,48 +196,75 @@ function showSCPlayer() {
   scWidget = SC.Widget(soundcloudIframe);
 
   scWidget.bind(SC.Widget.Events.READY, () => {
-    scReady = true;
+  scReady = true;
 
-    scWidget.setVolume(Math.round(Number(volume.value) * 100));
+  // сброс UI
+  progress.style.width = "0%";
+  currentTimeEl.textContent = "0:00";
 
-    scWidget.getDuration(ms => {
-      durationEl.textContent = formatTime(ms / 1000);
-    });
+  // громкость
+  scWidget.setVolume(Math.round(Number(volume.value) * 100));
+
+  // длительность
+  scWidget.getDuration((ms) => {
+    durationEl.textContent = formatTime(ms / 1000);
   });
+
+  // ❗ убираем старый интервал (очень важно)
+  if (window.scInterval) clearInterval(window.scInterval);
+
+  // ✅ основной апдейт прогресса
+  window.scInterval = setInterval(() => {
+    if (!scWidget || !scReady) return;
+
+    scWidget.getPosition((pos) => {
+      scWidget.getDuration((dur) => {
+        if (!dur) return;
+
+        const percent = (pos / dur) * 100;
+
+        progress.style.width = percent + "%";
+        currentTimeEl.textContent = formatTime(pos / 1000);
+      });
+    });
+  }, 300);
+});
 
   scWidget.bind(SC.Widget.Events.PLAY, () => {
     scIsPlaying = true;
-    playBtn.textContent = "⏸";
+    playBtn.classList.add("playing");
     document.querySelector(".custom-player").classList.add("playing");
     playerCover.classList.add("playing");
   });
 
   scWidget.bind(SC.Widget.Events.PAUSE, () => {
     scIsPlaying = false;
-    playBtn.textContent = "▶";
+    playBtn.classList.remove("playing");
     document.querySelector(".custom-player").classList.remove("playing");
     playerCover.classList.remove("playing");
   });
 
   scWidget.bind(SC.Widget.Events.FINISH, () => {
     scIsPlaying = false;
-    playBtn.textContent = "▶";
+    playBtn.classList.remove("playing");
     progress.style.width = "0%";
     currentTimeEl.textContent = "0:00";
     document.querySelector(".custom-player").classList.remove("playing");
     playerCover.classList.remove("playing");
   });
 
-  scWidget.bind(SC.Widget.Events.PLAY_PROGRESS, e => {
-    const currentSec = e.currentPosition / 1000;
-    const durationSec = e.duration / 1000;
+  scWidget.bind(SC.Widget.Events.PLAY_PROGRESS, (e) => {
+  if (!e || !e.duration) return;
 
-    currentTimeEl.textContent = formatTime(currentSec);
+  const currentSec = e.currentPosition / 1000;
+  const durationSec = e.duration / 1000;
 
-    if (durationSec > 0) {
-      progress.style.width = (currentSec / durationSec) * 100 + "%";
-    }
-  });
+  currentTimeEl.textContent = formatTime(currentSec);
+
+  const percent = (currentSec / durationSec) * 100;
+
+  progress.style.width = percent + "%";
+});
 }
 
   // -------------------------
@@ -269,17 +296,17 @@ function showSCPlayer() {
 });
 
   audio.addEventListener("play", () => {
-  playBtn.textContent = "⏸";
+  playBtn.classList.add("playing");
   playerCover.classList.add("playing"); // 👈 сюда
 });
 
 audio.addEventListener("pause", () => {
-  playBtn.textContent = "▶";
+  playBtn.classList.remove("playing");
   playerCover.classList.remove("playing"); // 👈 сюда
 });
 
   audio.addEventListener("ended", () => {
-    playBtn.textContent = "▶";
+    playBtn.classList.remove("playing");
     progress.style.width = "0%";
     currentTimeEl.textContent = "0:00";
   });
@@ -316,14 +343,21 @@ audio.addEventListener("pause", () => {
   });
 
   volume.addEventListener("input", () => {
-  const val = Number(volume.value);
+  const value = volume.value;
 
-  if (isMP3) {
-    audio.volume = val;
-  }
+  // громкость
+  if (audio) audio.volume = value;
+  if (scWidget) scWidget.setVolume(value * 100);
 
-  if (scWidget) {
-    scWidget.setVolume(Math.round(val * 100));
+  // заполнение
+  const percent = value * 100;
+  volume.style.setProperty("--vol", percent + "%");
+
+  // 🔇 mute логика
+  if (value == 0) {
+    volume.classList.add("muted");
+  } else {
+    volume.classList.remove("muted");
   }
 });
   // -------------------------

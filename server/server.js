@@ -1,3 +1,4 @@
+require("dotenv").config()
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -6,9 +7,12 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const sharp = require("sharp");
+const { Resend } = require("resend");
 
+const resend = new Resend("re_Xnoh7AHA_8WrQy8FK4qiEfNeK1THPTiL4");
 const fs = require("fs")
 const path = require("path")
+
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -25,10 +29,15 @@ const postUpload = multer({
 });
 
 const app = express();
+function generateUsernameTag(name) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .slice(0, 20);
+}
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public")));
 
 function getUserIdFromToken(req) {
@@ -38,12 +47,42 @@ function getUserIdFromToken(req) {
   }
 
   const token = authHeader.split(" ")[1];
-  const decoded = jwt.verify(token, "SECRET_KEY");
+  const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret");
   return decoded.id;
 }
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/html/index.html"));
+});
+
+app.get("/me", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "No token" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await pool.query(
+  `SELECT 
+    id,
+    username,
+    email,
+    avatar,
+    password IS NOT NULL as "hasPassword"
+   FROM users 
+   WHERE id = $1`,
+  [decoded.id]
+);
+
+    res.json(user.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 app.get("/test", async (req, res) => {
@@ -56,15 +95,52 @@ app.get("/test", async (req, res) => {
   }
 });
 
+app.get("/check-email/:email", async (req, res) => {
+  const email = decodeURIComponent(req.params.email);
+
+  const result = await pool.query(
+    "SELECT 1 FROM users WHERE email = $1",
+    [email]
+  );
+
+  res.json({ available: result.rows.length === 0 });
+});
+
+app.get("/check-tag/:tag", async (req, res) => {
+  const { tag } = req.params;
+
+  const result = await pool.query(
+    "SELECT 1 FROM users WHERE username_tag = $1",
+    [tag]
+  );
+
+  res.json({ available: result.rows.length === 0 });
+});
+
 app.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
     const hash = await bcrypt.hash(password, 10);
+    let baseTag = generateUsernameTag(username);
+let username_tag = baseTag;
+let counter = 1;
+
+while (true) {
+  const check = await pool.query(
+    "SELECT id FROM users WHERE LOWER(username_tag) = LOWER($1)",
+    [username_tag]
+  );
+
+  if (check.rows.length === 0) break;
+
+  username_tag = baseTag + counter;
+  counter++;
+}
 
 const result = await pool.query(
-  "INSERT INTO users (username,email,password,avatar) VALUES ($1,$2,$3,$4) RETURNING id,username,email,avatar",
-  [username, email, hash, "/images/default-avatar.jpg"]
+  "INSERT INTO users (username,email,password,avatar,username_tag) VALUES ($1,$2,$3,$4,$5) RETURNING id,username,username_tag,email,avatar",
+  [username, email, hash, "/images/default-avatar.jpg", username_tag]
 );
 
     res.json(result.rows[0]);
@@ -74,30 +150,262 @@ const result = await pool.query(
   }
 });
 
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+// ===== ОТПРАВКА КОДА =====
+// ===== SEND CODE (RESEND) =====
+app.post("/send-code", async (req, res) => {
+  const { email } = req.body;
+
+  const code = Math.floor(100000 + Math.random() * 900000);
+  global.emailCodes = global.emailCodes || {};
+  global.emailCodes[email] = code;
+
+  console.log("EMAIL SENT:", email);
+  console.log("CODE:", code);
 
   try {
-    const user = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
+    await resend.emails.send({
+      from: "Rhytmoria <no-reply@ritmoria.com>",
+      to: email, // 🔥 ВОТ ЭТО ГЛАВНОЕ
+      subject: "Код подтверждения",
+      html: `
+<div style="background:#0b0b12;padding:40px 0;font-family:Arial,sans-serif;">
+  <div style="max-width:500px;margin:auto;background:#111827;border-radius:16px;padding:30px;text-align:center;color:white;border:1px solid rgba(255,255,255,0.08);">
 
-    if (user.rows.length === 0) {
-      return res.status(400).send("User not found");
-    }
+    <h1 style="margin-bottom:10px;">#РИТМОРИЯ 🎧</h1>
 
-    const valid = await bcrypt.compare(password, user.rows[0].password);
+    <p style="color:#9ca3af;margin-bottom:20px;">
+      Подтверди свою почту
+    </p>
 
-    if (!valid) {
-      return res.status(400).send("Wrong password");
-    }
+    <div style="
+      font-size:32px;
+      letter-spacing:6px;
+      font-weight:bold;
+      background:linear-gradient(135deg,#8b5cf6,#6d28d9);
+      padding:15px;
+      border-radius:12px;
+      display:inline-block;
+      margin-bottom:20px;
+    ">
+      ${code}
+    </div>
 
-    const token = jwt.sign({ id: user.rows[0].id }, "SECRET_KEY", {
-      expiresIn: "7d"
+    <p style="color:#9ca3af;font-size:14px;">
+      Код действует 10 минут
+    </p>
+
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:20px 0;">
+
+    <p style="color:#6b7280;font-size:12px;">
+      Если это были не вы — просто проигнорируйте это письмо
+    </p>
+
+  </div>
+</div>
+`
     });
 
-    res.json({ token });
+    res.json({ success: true });
+
+  } catch (err) {
+    console.log("EMAIL ERROR:", err);
+    res.status(500).json({ error: "Ошибка отправки" });
+  }
+});
+
+app.post("/verify-code", async (req, res) => {
+  const { email, code } = req.body;
+
+  if (global.emailCodes[email] == code) {
+    return res.json({ success: true });
+  }
+
+  res.status(400).json({ error: "Неверный код" });
+});
+
+app.post("/change-password", async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    const { currentPassword, newPassword } = req.body;
+
+    const user = await pool.query(
+      "SELECT password FROM users WHERE id = $1",
+      [userId]
+    );
+
+    if (!user.rows[0].password) {
+      return res.status(400).json({ error: "No password set" });
+    }
+
+    const isMatch = await bcrypt.compare(
+      currentPassword,
+      user.rows[0].password
+    );
+
+    if (!isMatch) {
+      return res.status(400).json({ error: "Wrong password" });
+    }
+
+    const hash = await bcrypt.hash(newPassword, 10);
+
+    await pool.query(
+      "UPDATE users SET password = $1 WHERE id = $2",
+      [hash, userId]
+    );
+
+    res.json({ success: true });
+
   } catch (err) {
     console.error(err);
-    res.status(500).send("Login error");
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.post("/change-email-send-code", async (req, res) => {
+  const { newEmail } = req.body;
+  const existing = await pool.query(
+  "SELECT id FROM users WHERE email = $1",
+  [newEmail]
+);
+
+if (existing.rows.length > 0) {
+  return res.status(400).json({ error: "Email уже используется" });
+}
+
+  const code = Math.floor(100000 + Math.random() * 900000);
+
+  global.emailChangeCodes = global.emailChangeCodes || {};
+  global.emailChangeCodes[newEmail] = code;
+
+  try {
+    await resend.emails.send({
+      from: "Rhytmoria <no-reply@ritmoria.com>",
+      to: newEmail,
+      subject: "Смена почты",
+      html: `
+        <div style="background:#0b0b12;padding:40px;text-align:center;color:white;">
+          <h2>Смена почты</h2>
+          <p>Ваш код:</p>
+          <h1>${code}</h1>
+        </div>
+      `
+    });
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Email error" });
+  }
+});
+
+app.post("/change-email-confirm", async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    const { newEmail, code } = req.body;
+
+    if (global.emailChangeCodes?.[newEmail] != code) {
+      return res.status(400).json({ error: "Wrong code" });
+    }
+
+    await pool.query(
+      "UPDATE users SET email = $1 WHERE id = $2",
+      [newEmail, userId]
+    );
+
+    delete global.emailChangeCodes[newEmail];
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+app.post("/set-password", async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    const { password } = req.body;
+
+    if(!password){
+      return res.status(400).json({ error: "Нет пароля" });
+    }
+
+    const bcrypt = require("bcrypt");
+    const hash = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      "UPDATE users SET password = $1 WHERE id = $2",
+      [hash, userId]
+    );
+
+    res.json({ success: true });
+
+  } catch(err){
+    console.error(err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+
+app.post("/login", async (req, res) => {
+  try {
+    const { login, password } = req.body;
+
+    if (!login || !password) {
+      return res.status(400).json({ error: "Нет данных" });
+    }
+
+    let cleanLogin = login.trim();
+
+if (cleanLogin.startsWith("@")) {
+  cleanLogin = cleanLogin.slice(1);
+}
+
+// если это email → ищем только по email
+let result;
+
+if (cleanLogin.includes("@")) {
+  result = await pool.query(
+    "SELECT * FROM users WHERE LOWER(email)=LOWER($1)",
+    [cleanLogin]
+  );
+} else {
+  result = await pool.query(
+    "SELECT * FROM users WHERE LOWER(username_tag)=LOWER($1)",
+    [cleanLogin]
+  );
+}
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: "Пользователь не найден" });
+    }
+
+    const user = result.rows[0];
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ error: "Неверный пароль" });
+    }
+
+    const token = jwt.sign(
+  {
+    id: user.id,
+    username: user.username,
+    avatar: user.avatar
+  },
+  process.env.JWT_SECRET || "secret",
+  { expiresIn: "7d" }
+);
+
+    res.json({ token });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Ошибка сервера" });
   }
 });
 
@@ -106,7 +414,7 @@ app.get("/profile", async (req, res) => {
     const userId = getUserIdFromToken(req);
 
     const user = await pool.query(
-      `SELECT username,email,bio,avatar,soundcloud,instagram,twitter,telegram,website
+      `SELECT username,username_tag,email,bio,avatar,soundcloud,instagram,twitter,telegram,website
        FROM users
        WHERE id=$1`,
       [userId]
@@ -129,12 +437,14 @@ app.put("/update-profile", async (req, res) => {
   try {
     const userId = getUserIdFromToken(req);
 
+    
     const currentResult = await pool.query(
-      `SELECT username,bio,avatar,soundcloud,instagram,twitter,telegram,website
+      `SELECT username, username_tag, bio, avatar, soundcloud, instagram, twitter, telegram, website
        FROM users
        WHERE id=$1`,
       [userId]
     );
+  console.log("BODY:", req.body);
 
     if (currentResult.rows.length === 0) {
       return res.status(404).json({ error: "user_not_found" });
@@ -144,7 +454,11 @@ app.put("/update-profile", async (req, res) => {
 
     const username =
       req.body.username !== undefined ? String(req.body.username).trim() : current.username;
-
+      const username_tag =
+  req.body.username_tag !== undefined
+    ? String(req.body.username_tag).trim()
+    : current.username_tag;
+    console.log("USERNAME TAG:", username_tag);
     const bio = req.body.bio !== undefined ? req.body.bio : current.bio;
     const avatar = req.body.avatar !== undefined ? req.body.avatar : current.avatar;
     const soundcloud =
@@ -168,30 +482,41 @@ app.put("/update-profile", async (req, res) => {
     if (check.rows.length > 0) {
       return res.status(400).json({ error: "username_taken" });
     }
+    // проверка username_tag
+const tagCheck = await pool.query(
+  "SELECT id FROM users WHERE LOWER(username_tag) = LOWER($1) AND id != $2",
+  [username_tag, userId]
+);
+
+if (tagCheck.rows.length > 0) {
+  return res.status(400).json({ error: "username_tag_taken" });
+}
 
     const result = await pool.query(
 `UPDATE users
 SET
 username = $1,
-bio = $2,
-avatar = $3,
-soundcloud = $4,
-instagram = $5,
-twitter = $6,
-telegram = $7,
-website = $8
-WHERE id = $9
-RETURNING username,bio,avatar,soundcloud,instagram,twitter,telegram,website`,
+username_tag = $2,
+bio = $3,
+avatar = $4,
+soundcloud = $5,
+instagram = $6,
+twitter = $7,
+telegram = $8,
+website = $9
+WHERE id = $10
+RETURNING username, username_tag, bio, avatar, soundcloud, instagram, telegram, website`,
 [
-username,
-bio,
-avatar,
-soundcloud,
-instagram,
-twitter,
-telegram,
-website,
-userId
+  username,
+  username_tag,
+  bio,
+  avatar,
+  soundcloud,
+  instagram,
+  twitter,
+  telegram,
+  website,
+  userId
 ]
 );
     res.json(result.rows[0]);
@@ -300,7 +625,68 @@ res.status(500).json({error:"post_create_failed"});
 }
 
 });
+app.post("/update-post/:id", postUpload.single("media"), async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    const postId = req.params.id;
 
+    const content = req.body.content || "";
+
+    let mediaUrl = null;
+    let mediaType = null;
+
+    if (req.file) {
+
+      const timestamp = Date.now();
+
+      if (req.file.mimetype.startsWith("image")) {
+
+        const fileName = `post-${timestamp}.webp`;
+        const filePath = `public/uploads/posts/images/${fileName}`;
+
+        await sharp(req.file.buffer)
+          .resize(1200)
+          .webp({ quality: 90 })
+          .toFile(filePath);
+
+        mediaUrl = `/uploads/posts/images/${fileName}`;
+        mediaType = "image";
+
+      }
+
+      else if (req.file.mimetype.startsWith("video")) {
+
+        const fileName = `post-${timestamp}.mp4`;
+        const filePath = `public/uploads/posts/videos/${fileName}`;
+
+        fs.writeFileSync(filePath, req.file.buffer);
+
+        mediaUrl = `/uploads/posts/videos/${fileName}`;
+        mediaType = "video";
+
+      }
+
+    }
+
+    await pool.query(
+      `
+      UPDATE posts
+      SET 
+        content = $1,
+        media_url = COALESCE($2, media_url),
+        media_type = COALESCE($3, media_type)
+      WHERE id = $4 AND user_id = $5
+      `,
+      [content, mediaUrl, mediaType, postId, userId]
+    );
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "update_failed" });
+  }
+});
 
 app.delete("/delete-post/:id", async (req,res)=>{
 
@@ -371,7 +757,7 @@ users.username,
 users.avatar
 FROM posts
 JOIN users ON posts.user_id = users.id
-WHERE posts.user_id=$1
+WHERE posts.user_id=$1 AND COALESCE(posts.is_archived,false)=false
 ORDER BY posts.created_at DESC
 `,
 [userId]
@@ -381,6 +767,7 @@ res.json(posts.rows);
 
 }catch(err){
 
+console.error("MY POSTS ERROR:", err);  // 👈 ВОТ ЭТО ГЛАВНОЕ
 res.status(500).send("error");
 
 }
@@ -401,211 +788,259 @@ res.json(posts.rows)
 
 })
 
+app.put("/archive-post/:id", async (req,res)=>{
 
-const tracksFile = path.join(__dirname, "../data/tracks.json")
+try{
 
-function readTracks() {
-  if (!fs.existsSync(tracksFile)) return []
-  return JSON.parse(fs.readFileSync(tracksFile))
+const userId = getUserIdFromToken(req)
+const postId = req.params.id
+
+await pool.query(
+"UPDATE posts SET is_archived = NOT COALESCE(is_archived,false) WHERE id=$1 AND user_id=$2",
+[postId,userId]
+)
+
+res.json({success:true})
+
+}catch(err){
+
+console.error(err)
+res.status(500).json({error:"archive_failed"})
+
 }
-
-function writeTracks(data) {
-  fs.writeFileSync(tracksFile, JSON.stringify(data, null, 2))
-}
-
-// 🎧 загрузка трека
-app.post("/api/tracks", upload.fields([
-  { name: "audio", maxCount: 1 },
-  { name: "cover", maxCount: 1 }
-]), async (req, res) => {
-  try {
-    const tracks = readTracks();
-    const id = Date.now();
-
-    const audioFile = req.files?.audio?.[0] || null;
-    const coverFile = req.files?.cover?.[0] || null;
-
-    const artist = String(req.body.artist || "").trim();
-    const title = String(req.body.title || "").trim();
-    const soundcloudUrl = String(req.body.soundcloud || "").trim();
-    const coverUrlFromClient = req.body.coverUrl || null;
-
-    if (!audioFile && !soundcloudUrl) {
-      return res.status(400).json({
-        message: "Нужно добавить либо аудиофайл, либо ссылку SoundCloud"
-      });
-    }
-
-    if (!artist || !title) {
-      return res.status(400).json({
-        message: "Заполни автора и название трека"
-      });
-    }
-
-    let audioUrl = null;
-    let coverUrl = null;
-
-    // сохраняем аудио, только если файл реально есть
-    if (audioFile) {
-      const ext = path.extname(audioFile.originalname) || ".mp3";
-      const audioName = `track-${id}${ext}`;
-      const audioPath = path.join(__dirname, "../public/uploads/tracks/audio", audioName);
-
-      fs.writeFileSync(audioPath, audioFile.buffer);
-      audioUrl = `/uploads/tracks/audio/${audioName}`;
-    }
-
-    // сохраняем обложку, если загрузили файл
-if (coverFile && coverFile.buffer) {
-  try {
-    const coverName = `cover-${id}.webp`;
-    const coverDir = path.join(__dirname, "../public/uploads/tracks/covers");
-    const coverPath = path.join(coverDir, coverName);
-
-    // 🔥 создаём папку если нет
-    if (!fs.existsSync(coverDir)) {
-      fs.mkdirSync(coverDir, { recursive: true });
-    }
-
-    await sharp(coverFile.buffer)
-      .resize(500, 500, { fit: "cover" })
-      .webp({ quality: 90 })
-      .toFile(coverPath);
-
-    coverUrl = `/uploads/tracks/covers/${coverName}`;
-  } catch (err) {
-    console.error("Cover upload error:", err);
-  }
-}
-
-// 🔥 ЕСЛИ ОБЛОЖКА С SOUNDCLOUD
-else if (coverUrlFromClient) {
-  coverUrl = coverUrlFromClient;
-}
-
-    const newTrack = {
-      id,
-      artist,
-      title,
-      cover: coverUrl,
-      audio: audioUrl,
-      soundcloud: soundcloudUrl || null,
-      createdAt: new Date().toISOString()
-    };
-
-    tracks.push(newTrack);
-    writeTracks(tracks);
-
-    res.json({
-      success: true,
-      track: newTrack
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Upload failed" });
-  }
-});
-
-
-// 📜 очередь
-app.get("/api/tracks/queue", (req, res) => {
-  const tracks = readTracks()
-  res.json(tracks)
-})
-
-
-// 🗑 удалить трек
-app.delete("/api/tracks/:id", (req, res) => {
-
-  const id = Number(req.params.id)
-  let tracks = readTracks()
-
-  const track = tracks.find(t => t.id === id)
-
-  if (!track) {
-    return res.status(404).json({ message: "Track not found" })
-  }
-
-  // удаляем файлы
- // удаляем аудио
-if (track.audio) {
-  const audioPath = path.join(__dirname, "../public", track.audio)
-
-  if (fs.existsSync(audioPath)) {
-    fs.unlinkSync(audioPath)
-  }
-}
-
-// удаляем обложку ТОЛЬКО если она локальная
-if (track.cover && track.cover.startsWith("/uploads")) {
-  const coverPath = path.join(__dirname, "../public", track.cover)
-
-  if (fs.existsSync(coverPath)) {
-    fs.unlinkSync(coverPath)
-  }
-}
-
-  tracks = tracks.filter(t => t.id !== id)
-
-  writeTracks(tracks)
-
-  res.json({ success: true })
 
 })
 
+// ======================
+// 🔥 SOUNDCLOUD API
+// ======================
 app.get("/api/soundcloud", async (req, res) => {
+  const url = req.query.url;
+
+  if (!url) {
+    return res.status(400).json({ message: "Нет ссылки" });
+  }
+
   try {
-    const url = String(req.query.url || "").trim();
+    // 🔥 получаем HTML страницы трека
+    const response = await fetch(url);
+    const html = await response.text();
 
-    if (!url) {
-      return res.status(400).json({ message: "No URL" });
+    // 🔥 вытаскиваем JSON из страницы
+    const jsonMatch = html.match(/window\.__sc_hydration = (\[.*?\]);/);
+
+    if (!jsonMatch) {
+      return res.status(500).json({ message: "Не удалось распарсить SoundCloud" });
     }
 
-    const oembedUrl =
-      `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`;
+    const data = JSON.parse(jsonMatch[1]);
 
-    const response = await fetch(oembedUrl);
+    // 🔥 ищем трек
+    const trackData = data.find(item => item.hydratable === "sound");
 
-    if (!response.ok) {
-      return res.status(400).json({ message: "SoundCloud link not recognized" });
+    if (!trackData) {
+      return res.status(500).json({ message: "Трек не найден" });
     }
 
-    const data = await response.json();
+    const track = trackData.data;
 
-    let artist = data.author_name || "";
-    let title = data.title || "";
-    const artwork = data.thumbnail_url || null;
+    const artist = track.user?.username || "";
+    const title = track.title || "";
 
-    // чистим title от мусора
-    // пример: "Stream сладких снов(weizz) by хизаво"
-    title = title.replace(/^Stream\s+/i, "").trim();
-    title = title.replace(/\s+by\s+.+$/i, "").trim();
-    title = title.replace(/\s*\|\s*Listen.*$/i, "").trim();
+    const artwork =
+      track.artwork_url?.replace("-large", "-t500x500") ||
+      track.user?.avatar_url;
 
     res.json({
       artist,
       title,
       artwork
     });
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Error parsing SoundCloud" });
+    res.status(500).json({ message: "Ошибка SoundCloud" });
   }
 });
 
-app.get("/api/tracks/:id", (req, res) => {
-  const id = Number(req.params.id)
-  const tracks = readTracks()
 
-  const track = tracks.find(t => t.id === id)
+// ======================
+// 🔥 TRACKS API
+// ======================
 
-  if (!track) {
-    return res.status(404).json({ message: "Track not found" })
+// ➕ создать трек
+app.post("/api/tracks", upload.fields([
+  { name: "audio", maxCount: 1 },
+  { name: "cover", maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const { artist, title, soundcloud, coverUrl } = req.body;
+
+    let audioPath = null;
+    let cover = coverUrl || null;
+
+    // 🎵 audio
+    if (req.files?.audio) {
+      const file = req.files.audio[0];
+      const fileName = `track-${Date.now()}.mp3`;
+      const filePath = `public/uploads/tracks/${fileName}`;
+
+      fs.writeFileSync(filePath, file.buffer);
+      audioPath = `/uploads/tracks/${fileName}`;
+    }
+
+    // 🖼 cover
+    if (req.files?.cover) {
+      const file = req.files.cover[0];
+      const fileName = `cover-${Date.now()}.webp`;
+      const filePath = `public/uploads/tracks/covers/${fileName}`;
+
+      await sharp(file.buffer)
+        .resize(500, 500)
+        .webp({ quality: 90 })
+        .toFile(filePath);
+
+      cover = `/uploads/tracks/covers/${fileName}`;
+    }
+
+    const result = await pool.query(
+      `INSERT INTO tracks (artist, title, soundcloud, cover, audio, createdAt)
+       VALUES ($1,$2,$3,$4,$5,NOW())
+       RETURNING *`,
+      [artist, title, soundcloud, cover, audioPath]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Ошибка создания трека" });
   }
+});
 
-  res.json(track)
-})
+
+// 📥 очередь
+app.get("/api/tracks/queue", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM tracks ORDER BY createdAt ASC"
+    );
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Ошибка загрузки очереди" });
+  }
+});
+
+
+// ❌ удалить трек
+app.delete("/api/tracks/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    await pool.query("DELETE FROM tracks WHERE id = $1", [id]);
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Ошибка удаления" });
+  }
+});
+
+// 🔥 получить один трек
+app.get("/api/tracks/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const result = await pool.query(
+      "SELECT * FROM tracks WHERE id = $1",
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Трек не найден" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
 
 app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");
+});
+
+app.post("/telegram-login", async (req, res) => {
+  const { id, first_name, username, photo_url } = req.body;
+
+  try {
+    // ищем пользователя
+    let user = await pool.query(
+      "SELECT * FROM users WHERE telegram_id = $1",
+      [id]
+    );
+
+    // 🟢 ЕСЛИ НОВЫЙ ПОЛЬЗОВАТЕЛЬ
+    if (user.rows.length === 0) {
+
+      // генерация уникального username_tag
+      let baseTag = generateUsernameTag(username || first_name || "user");
+      let username_tag = baseTag;
+      let counter = 1;
+
+      while (true) {
+        const check = await pool.query(
+          "SELECT id FROM users WHERE LOWER(username_tag) = LOWER($1)",
+          [username_tag]
+        );
+
+        if (check.rows.length === 0) break;
+
+        username_tag = baseTag + counter;
+        counter++;
+      }
+
+      user = await pool.query(
+        `
+        INSERT INTO users (telegram_id, username, username_tag, avatar)
+        VALUES ($1, $2, $3, $4)
+        RETURNING *
+        `,
+        [
+          id,
+          first_name || "user",
+          username_tag,
+          photo_url || "/images/default-avatar.jpg"
+        ]
+      );
+
+    } else {
+      // 🔵 УЖЕ СУЩЕСТВУЕТ → НИЧЕГО НЕ МЕНЯЕМ
+      user = user;
+    }
+
+    // создаём токен
+    const token = jwt.sign(
+  {
+    id: user.rows[0].id,
+    username: user.rows[0].username,
+    avatar: user.rows[0].avatar
+  },
+  process.env.JWT_SECRET || "secret",
+  { expiresIn: "7d" }
+);
+
+    res.json({ token });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Telegram auth error" });
+  }
 });

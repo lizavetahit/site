@@ -140,3 +140,184 @@ gap:6px;
   background: rgba(139, 92, 246, 0.25);
   transform: translateY(-1px);
 }
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  padding: 6px;
+  border-radius: 50%;
+
+  transition: all 0.2s ease;
+}
+
+
+
+.nav-user img{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.hidden{
+  display:none;
+}
+
+
+.nav-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+
+  border: 2px solid rgba(255,255,255,0.2);
+
+  transition: all 0.25s ease;
+  box-shadow: 0 0 0 rgba(139,92,246,0);
+}
+
+/* 🔥 ХОВЕР ЭФФЕКТ *
+
+/* 🔥 АКТИВ (клик) */
+.nav-user:active .nav-avatar {
+  transform: scale(0.95);
+}
+
+.nav-avatar {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px;
+  min-height: 44px;
+
+  border-radius: 50%;
+  object-fit: cover;
+
+  border: 2px solid rgba(255,255,255,0.25);
+
+  transition: all 0.25s ease;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  z-index: 1001;
+
+  padding: 6px;
+  border-radius: 50%;
+}
+
+.nav-user:hover {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(6px);
+
+  transform: translateY(-1px);
+}
+
+/* мягкое увеличение */
+.nav-user:hover .nav-avatar {
+  transform: scale(1.06);
+}
+
+/* 🔥 АКТИВ (нажатие) */
+.nav-user:active {
+  transform: scale(0.95);
+  background: rgba(255,255,255,0.04);
+}
+
+/* dropdown */
+.nav-dropdown {
+  position: absolute;
+  top: 70px;
+  right: 20px;
+
+  width: 200px;
+
+  padding: 10px;
+
+  border-radius: 16px;
+
+  /* 🔥 более плотный фон */
+  background: linear-gradient(
+    145deg,
+    rgba(20,20,35,0.98),
+    rgba(10,10,20,0.98)
+  );
+
+  backdrop-filter: blur(25px);
+
+  border: 1px solid rgba(255,255,255,0.06);
+
+  /* 💎 ГЛУБИНА */
+  box-shadow:
+    0 20px 50px rgba(0,0,0,0.7),
+    0 0 25px rgba(139,92,246,0.12);
+
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  pointer-events: none;
+
+  transition: all 0.2s ease;
+}
+
+/* актив */
+.nav-dropdown.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* элементы */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+
+  padding: 11px 12px;
+
+  border-radius: 12px;
+
+  font-size: 14px;
+  color: #e5e7eb;
+
+  cursor: pointer;
+
+  transition: all 0.18s ease;
+}
+
+/* hover (🔥 вот тут магия) */
+.dropdown-item:hover {
+  background: rgba(139,92,246,0.12);
+  color: #ffffff;
+
+  transform: translateX(3px);
+}
+
+/* divider */
+.dropdown-divider {
+  height: 1px;
+  margin: 8px 0;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.08),
+    transparent
+  );
+}
+
+/* logout */
+.dropdown-item.logout {
+  color: #f87171;
+}
+
+.dropdown-item.logout:hover {
+  background: rgba(248,113,113,0.15);
+  color: #ff4d4d;
+
+  transform: translateX(3px);
+}

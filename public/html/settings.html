@@ -7,8 +7,11 @@
 
 <title>Настройки</title>
 
+<link rel="stylesheet" href="/styles/base.css">
+<link rel="stylesheet" href="/styles/navbar.css">
 <link rel="stylesheet" href="/styles/style.css">
 <link rel="stylesheet" href="/styles/settings.css">
+<link rel="stylesheet" href="/styles/privacy.css">
 
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -30,25 +33,25 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
 
 <div class="settings-grid">
 
-<a href="/html/archive.html" class="settings-card">
-<i class="fa-solid fa-box-archive"></i>
-<span>Архив</span>
-</a>
+  <div onclick="openSettings('archive')" class="settings-card">
+    <i class="fa-solid fa-box-archive"></i>
+    <span>Архив</span>
+  </div>
 
-<a href="/html/privacy.html" class="settings-card">
-<i class="fa-solid fa-shield-halved"></i>
-<span>Конфиденциальность</span>
-</a>
+  <div onclick="openSettings('privacy')" class="settings-card">
+    <i class="fa-solid fa-shield-halved"></i>
+    <span>Конфиденциальность</span>
+  </div>
 
-<a href="/html/saved.html" class="settings-card">
-<i class="fa-solid fa-bookmark"></i>
-<span>Сохранённые</span>
-</a>
+  <div onclick="openSettings('saved')" class="settings-card">
+    <i class="fa-solid fa-bookmark"></i>
+    <span>Сохранённые</span>
+  </div>
 
-<button onclick="logout()" class="settings-card danger">
-<i class="fa-solid fa-right-from-bracket"></i>
-<span>Выйти из аккаунта</span>
-</button>
+  <div onclick="logout()" class="settings-card danger">
+    <i class="fa-solid fa-right-from-bracket"></i>
+    <span>Выйти из аккаунта</span>
+  </div>
 
 </div>
 
@@ -57,6 +60,23 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
 <script src="/js/navbar.js"></script>
 <script src="/js/settings.js"></script>
 
+
+<div id="settingsModal" class="settings-modal">
+
+  <div class="settings-modal-content">
+
+    <div class="settings-modal-header">
+      <h2 id="modalTitle">Заголовок</h2>
+      <button onclick="closeSettings()">&times;</button>
+    </div>
+
+    <div class="settings-modal-body" id="modalBody">
+      Контент
+    </div>
+
+  </div>
+
+</div>
 </body>
 
 </html>

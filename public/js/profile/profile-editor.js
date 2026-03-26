@@ -370,6 +370,8 @@ async function publishPost() {
   const progressWrap = document.getElementById("uploadProgress");
   const progressBar = document.getElementById("uploadBar");
   const publishBtn = document.getElementById("publishPostBtn");
+  const modal = document.getElementById("postModal");
+  const editId = modal?.dataset?.editId;
 
   if (!text && !postEditorState.file) {
     alert("Добавь текст или медиа");
@@ -378,6 +380,10 @@ async function publishPost() {
 
   const formData = new FormData();
   formData.append("content", text);
+  // 👉 если редактирование и файл не меняли
+  if (editId && !postEditorState.file) {
+  formData.append("keepMedia", "true");
+  }
 
   if (postEditorState.file) {
     if (postEditorState.fileType === "image") {
@@ -407,15 +413,22 @@ async function publishPost() {
     if (publishBtn) publishBtn.disabled = false;
 
     if (xhr.status >= 200 && xhr.status < 300) {
-      closePostModal();
-      loadPosts();
-      return;
-    }
+
+    
+
+    closePostModal();
+    loadPosts();
+    return;
+  }
 
     alert("Ошибка публикации");
   };
 
+  if (editId) {
+  xhr.open("POST", "/update-post/" + editId); // 🔥 вместо PUT
+} else {
   xhr.open("POST", "/create-post");
+}
   xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("token"));
   xhr.send(formData);
 }
@@ -506,3 +519,73 @@ window.closePostModal = closePostModal;
 window.publishPost = publishPost;
 window.selectMedia = selectMedia;
 window.removeMedia = removeMedia;
+
+function openCreatePostModal() {
+  const modal = document.getElementById("postModal");
+  if (!modal) return;
+
+  // ❗ убираем режим редактирования
+  delete modal.dataset.editId;
+
+  // ❗ сбрасываем всё
+  resetPostEditor();
+
+  // ❗ меняем заголовок обратно
+  const title = document.querySelector(".post-modal-title");
+  if (title) {
+    title.innerText = "Создать публикацию";
+  }
+
+  modal.style.display = "flex";
+}
+
+window.openCreatePostModal = openCreatePostModal;
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const usernameTagInput = document.getElementById("editUsernameTag");
+  const statusEl = document.getElementById("usernameTagStatus");
+
+  let debounce;
+
+  if (usernameTagInput) {
+    usernameTagInput.addEventListener("input", () => {
+      let value = usernameTagInput.value;
+
+      value = value.replace(/[^a-zA-Z0-9]/g, "");
+      usernameTagInput.value = value;
+
+      clearTimeout(debounce);
+
+      if (value.length < 4) {
+        statusEl.innerText = "Минимум 4 символа";
+        statusEl.className = "input-status error";
+        return;
+      }
+
+      debounce = setTimeout(async () => {
+        const res = await fetch(`/check-tag/${value}`);
+        const data = await res.json();
+
+        if (data.available) {
+          statusEl.innerText = "Свободно ✅";
+          statusEl.className = "input-status ok";
+        } else {
+          statusEl.innerText = "Занято ❌";
+          statusEl.className = "input-status error";
+        }
+      }, 400);
+    });
+  }
+
+});
+
+
+
+function fillProfileEditor(user) {
+  const usernameInput = document.getElementById("editUsernameTag");
+
+  if (usernameInput) {
+    usernameInput.value = user.username_tag || "";
+  }
+}

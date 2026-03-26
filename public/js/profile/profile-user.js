@@ -111,10 +111,32 @@ async function loadProfile() {
     }
 
     const user = await res.json();
+    fillProfileEditor(user);
+
+    if (!user.email) {
+  const username = document.getElementById("username");
+  username.innerHTML 
+  }
 
     setText("username", user.username);
-    setText("email", user.email);
-    setText("bio", user.bio || "");
+    if (!user.email) {
+  const usernameEl = document.getElementById("username");
+  usernameEl.innerHTML
+}
+    setText("usernameTag", user.username_tag ? "@" + user.username_tag : "")
+    if (user.email) {
+  setText("email", user.email);
+  } else {
+  setText("email", "Telegram аккаунт");
+  }
+    const bioEl = document.getElementById("bio");
+
+if (!user.bio || user.bio.trim() === "") {
+  bioEl.style.display = "none";
+} else {
+  bioEl.style.display = "block";
+  bioEl.innerText = user.bio;
+}
 
     let avatar = user.avatar;
 
@@ -138,7 +160,7 @@ document.getElementById("avatar").src = avatar + "?t=" + Date.now();
     await loadTracks();
   } catch (error) {
     console.error(error);
-    setText("profileError", );
+    setText("profileError", "");
   }
 }
 
@@ -157,13 +179,19 @@ function editUsername() {
   const usernameInput = document.getElementById("usernameInput");
   const username = document.getElementById("username");
 
-  setText("usernameError", "");
+  if (!editBox || !usernameInput || !username) return;
 
-  if (editBox && usernameInput && username) {
-    usernameInput.value = username.innerText.trim();
-    editBox.classList.remove("hidden");
-    usernameInput.focus();
+  // 🔥 если уже открыт — закрываем
+  if (!editBox.classList.contains("hidden")) {
+    editBox.classList.add("hidden");
+    return;
   }
+
+  // иначе открываем
+  setText("usernameError", "");
+  usernameInput.value = username.innerText.trim();
+  editBox.classList.remove("hidden");
+  usernameInput.focus();
 }
 
 function cancelUsernameEdit() {
@@ -226,6 +254,7 @@ async function saveProfile() {
   const twitter = document.getElementById("editTwitter").value.trim();
   const telegram = document.getElementById("editTelegram").value.trim();
   const website = document.getElementById("editWebsite").value.trim();
+  const username_tag = document.getElementById("editUsernameTag").value.trim();
 
   if (!username) {
     setText("profileError", "Ник не может быть пустым");
@@ -248,14 +277,13 @@ async function saveProfile() {
       },
       body: JSON.stringify({
         username,
+        username_tag,
         bio,
-        avatar,
         soundcloud,
         instagram,
-        twitter,
         telegram,
         website
-      })
+})
     });
 
     const data = await res.json();
@@ -288,6 +316,68 @@ async function saveProfile() {
 
 function initProfileUser(){
   loadProfile()
+}
+
+async function loadTracks() {
+
+  const container = document.getElementById("tracksContainer")
+  if (!container) return
+
+  // 🔥 пока без сервера (заглушка)
+  const tracks = [
+    {
+      title: "My first track",
+      artist: "Хизаво",
+      cover: "/images/default-avatar.jpg"
+    },
+    {
+      title: "Night vibe",
+      artist: "Хизаво",
+      cover: "/images/default-avatar.jpg"
+    }
+  ]
+
+  container.innerHTML = ""
+
+  tracks.forEach(track => {
+    container.innerHTML += `
+      <div class="track-card">
+        <img src="${track.cover}" class="track-cover">
+
+        <div class="track-info">
+          <div class="track-title">${track.title}</div>
+          <div class="track-artist">${track.artist}</div>
+        </div>
+
+        <button class="track-play">
+          <i class="fa-solid fa-play"></i>
+        </button>
+      </div>
+    `
+  })
+
+}
+
+function loadMentions() {
+
+  const container = document.getElementById("mentionsContainer")
+  if (!container) return
+
+  const mentions = [
+    "DJ Alex упомянул тебя в посте",
+    "Producer123 оценил твой трек 🔥"
+  ]
+
+  container.innerHTML = ""
+
+  mentions.forEach(text => {
+    container.innerHTML += `
+      <div class="mention-card">
+        ${text}
+      </div>
+    `
+  })
+
 }
 
 window.openEdit = openEdit

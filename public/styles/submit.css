@@ -23,17 +23,16 @@
   width: 100%;
   max-width: 1120px;
 
-  background: rgba(15, 15, 30, 0.55); /* как navbar */
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(52, 35, 48, 0.6);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255,255,255,0.06);
   border-radius: 28px;
 
   box-shadow:
-    0 10px 30px rgba(0,0,0,0.5),
-    0 0 30px rgba(124,58,237,0.12),
-    inset 0 0 20px rgba(255,255,255,0.03);
+    0 10px 40px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,255,255,0.05);
 
   padding: 48px;
 }
@@ -63,23 +62,24 @@
     }
 
     .cover-label {
-      width: 190px;
-      height: 190px;
-      border-radius: 22px;
-      border: 1px solid rgba(255, 255, 255, 0.09);
-      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
-      cursor: pointer;
-      overflow: hidden;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+  width: 190px;
+  height: 190px;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(101, 58, 73, 0.325);
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s ease;
+}
 
     .cover-label:hover {
-      border-color: rgba(177, 124, 255, 0.55);
-      box-shadow: 0 0 0 1px rgba(177, 124, 255, 0.22);
-    }
+  border-color: #b07497;
+  box-shadow: 0 0 0 1px rgba(176,116,151,0.18);
+}
 
     .cover-placeholder {
       display: flex;
@@ -151,15 +151,15 @@
   height: 58px;
 
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
 
-  background: rgba(10, 10, 25, 0.6);
+  background: rgba(101, 58, 73, 0.325); /* темнее карточки */
+  border: 1px solid rgba(255,255,255,0.05);
 
   color: white;
   padding: 0 18px;
   font-size: 17px;
 
-  transition: 0.2s ease;
+  transition: 0.2s;
 }
 
     .input::placeholder {
@@ -167,8 +167,12 @@
     }
 
    .input:focus {
-  border-color: rgba(167, 139, 250, 0.6);
-  box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.2);
+  outline: none;
+
+  border-color: rgba(176,116,151,0.4);
+
+  box-shadow:
+    0 0 0 1px rgba(176,116,151,0.15);
 }
 
     .soundcloud-row {
@@ -180,12 +184,11 @@
 
     .fetch-btn {
   height: 58px;
-
   border-radius: 18px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(207, 108, 166, 0.28);
 
-  background: rgba(255, 70, 70, 0.15);
-  color: #ff6b6b;
+  background: rgba(54, 18, 31, 0.325);
+  color: #f2d8e7;
 
   font-size: 15px;
   font-weight: 600;
@@ -195,7 +198,8 @@
 }
 
 .fetch-btn:hover {
-  background: rgba(255, 70, 70, 0.25);
+  background: rgba(176,116,151,0.24);
+  border-color: rgba(176,116,151,0.4);
 }
 
     .audio-upload-block {
@@ -211,24 +215,23 @@
     }
 
     .file-trigger {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 58px;
-      border-radius: 18px;
-      border: 1px solid rgba(255, 255, 255, 0.09);
-      background: rgba(255, 255, 255, 0.05);
-      padding: 10px 14px;
-      gap: 14px;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 58px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(101, 58, 73, 0.325);
+  padding: 10px 14px;
+  gap: 14px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
 
     .file-trigger:hover {
-      border-color: rgba(177, 124, 255, 0.55);
-      box-shadow: 0 0 0 1px rgba(177, 124, 255, 0.14);
-    }
-
+  border-color: #b07497;
+  box-shadow: 0 0 0 1px rgba(176,116,151,0.15);
+}
     .file-left {
       display: flex;
       align-items: center;
@@ -238,14 +241,14 @@
     }
 
     .file-btn {
-      white-space: nowrap;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 14px;
-      font-weight: 700;
-      color: white;
-    }
+  white-space: nowrap;
+  background: rgba(117, 81, 107, 0.6);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+}
 
     .file-name {
       min-width: 0;
@@ -257,12 +260,12 @@
     }
 
     .audio-preview-wrap {
-      display: none;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.09);
-      background: rgba(255,255,255,0.04);
-      padding: 14px;
-    }
+  display: none;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(69, 34, 46, 0.6);
+  padding: 14px;
+}
 
     .audio-title {
       font-size: 14px;
@@ -282,12 +285,12 @@
     }
 
     .status.error {
-      color: #ff8f9f;
-    }
+  color: #f0a1bc;
+}
 
-    .status.success {
-      color: #92ffb4;
-    }
+.status.success {
+  color: #e7c8da;
+}
 
     .submit-btn {
   width: 100%;
@@ -295,12 +298,11 @@
   margin-top: 30px;
 
   border-radius: 18px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(207, 108, 166, 0.28);
 
-  background: rgba(167, 139, 250, 0.15); /* мягче */
-  backdrop-filter: blur(10px);
-
+  background: rgba(54, 18, 31, 0.325);
   color: white;
+
   font-size: 16px;
   font-weight: 600;
 
@@ -309,7 +311,8 @@
 }
 
 .submit-btn:hover {
-  background: rgba(167, 139, 250, 0.25);
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #523039, #5a2c40);
 }
 
     .queue-link-wrap {

@@ -558,3 +558,49 @@ border-radius:10px;
   padding-top: 80px;
 }
 
+/* TELEGRAM LOGIN */
+
+.tg-login-box {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 999px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: linear-gradient(135deg, #2AABEE, #229ED9);
+  color: white;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.tg-login-box:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
+}
+
+.tg-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.tg-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.hidden {
+  display: none;
+}
+
+.telegram-widget-wrap {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+}

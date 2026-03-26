@@ -66,7 +66,9 @@ fetch("/html/components/navbar.html")
   <div id="mp3Player" class="player-ui">
 
   <div class="player-track">
+  <div class="vinyl">
     <img id="playerCover" src="">
+  </div>
     <div class="player-meta">
       <div id="playerTitle">Track</div>
       <div id="playerArtist">Artist</div>
@@ -76,7 +78,10 @@ fetch("/html/components/navbar.html")
   <audio id="judgeAudio"></audio>
 
   <div class="player-left">
-    <button id="playBtn">▶</button>
+    <button id="playBtn">
+  <span class="icon play"></span>
+  <span class="icon pause"></span>
+</button>
   </div>
 
   <div class="player-center">

@@ -100,11 +100,20 @@ async function loadProfile() {
   clearMessages();
 
   try {
-    const res = await fetch("/profile", {
-      headers: {
-        Authorization: "Bearer " + token
-      }
-    });
+    const params = new URLSearchParams(window.location.search)
+const id = params.get("id")
+
+let url = "/profile"
+
+if (id) {
+  url += `?id=${id}`
+}
+
+const res = await fetch(url, {
+  headers: {
+    Authorization: "Bearer " + token
+  }
+});
 
     if (!res.ok) {
       throw new Error("Ошибка загрузки профиля");
@@ -165,6 +174,11 @@ document.getElementById("avatar").src = avatar + "?t=" + Date.now();
 }
 
 function openEdit() {
+if(!isMyProfile()){
+  alert("Это не твой профиль 😈");
+  return;
+}
+
   const modal = document.getElementById("editModal");
   if (modal) modal.style.display = "block";
 }
@@ -201,6 +215,10 @@ function cancelUsernameEdit() {
 }
 
 async function saveUsername() {
+  if(!isMyProfile()){
+  alert("Это не твой профиль 😈");
+  return;
+}
   const username = document.getElementById("usernameInput").value.trim();
 
   setText("usernameError", "");
@@ -243,6 +261,11 @@ async function saveUsername() {
 }
 
 async function saveProfile() {
+
+  if(!isMyProfile()){
+  alert("Это не твой профиль 😈");
+  return;
+}
 
   clearMessages();
 
@@ -323,38 +346,283 @@ async function loadTracks() {
   const container = document.getElementById("tracksContainer")
   if (!container) return
 
-  // 🔥 пока без сервера (заглушка)
-  const tracks = [
-    {
-      title: "My first track",
-      artist: "Хизаво",
-      cover: "/images/default-avatar.jpg"
-    },
-    {
-      title: "Night vibe",
-      artist: "Хизаво",
-      cover: "/images/default-avatar.jpg"
+  const params = new URLSearchParams(window.location.search)
+  const id = params.get("id")
+
+  let url = "/user-tracks"
+  if (id) url += "?id=" + id
+
+  const res = await fetch(url, {
+    headers: {
+      Authorization: "Bearer " + token
     }
-  ]
+  })
+
+  const tracks = await res.json()
 
   container.innerHTML = ""
 
   tracks.forEach(track => {
     container.innerHTML += `
       <div class="track-card">
-        <img src="${track.cover}" class="track-cover">
+
+        <img src="${track.cover || '/images/default-avatar.jpg'}" class="track-cover">
 
         <div class="track-info">
           <div class="track-title">${track.title}</div>
-          <div class="track-artist">${track.artist}</div>
+          <div class="track-artist">${track.artist || "Unknown"}</div>
         </div>
 
-        <button class="track-play">
+        <button class="track-play"
+          onclick="playTrackGlobal({
+            title: '${track.title}',
+            artist: '${track.artist}',
+            cover: '${track.cover}',
+            audioSrc: '${track.audio || ""}',
+            soundcloud: '${track.soundcloud || ""}'
+          })"
+        >
           <i class="fa-solid fa-play"></i>
         </button>
+
       </div>
     `
   })
+
+}
+
+function addTrack(){
+
+  const title = prompt("Название трека")
+  if(!title) return
+
+  const artist = prompt("Исполнитель")
+  const audio = prompt("Ссылка на mp3 (или пусто)")
+  const soundcloud = prompt("Ссылка на SoundCloud (или пусто)")
+  const cover = prompt("Ссылка на обложку (или пусто)")
+
+  fetch("/add-user-track",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      Authorization:"Bearer "+token
+    },
+    body: JSON.stringify({
+      title,
+      artist,
+      audio,
+      soundcloud,
+      cover
+    })
+  })
+  .then(res=>res.json())
+  .then(()=>{
+    loadTracks()
+  })
+
+}
+
+function initTrackModal() {
+  const coverInput = document.getElementById("trackCoverInput");
+  const coverPreview = document.getElementById("trackCoverPreview");
+  const coverPlaceholder = document.getElementById("trackCoverPlaceholder");
+
+  const audioInput = document.getElementById("trackAudioInput");
+  const fileName = document.getElementById("trackFileName");
+  const audioPlayer = document.getElementById("trackAudioPlayer");
+  const preview = document.getElementById("trackPreview");
+
+  if (coverInput) {
+    coverInput.onchange = () => {
+      const file = coverInput.files[0];
+      if (!file) return;
+
+      coverPreview.src = URL.createObjectURL(file);
+      coverPreview.style.display = "block";
+      coverPlaceholder.style.display = "none";
+    };
+  }
+
+  if (audioInput) {
+    audioInput.onchange = () => {
+      const file = audioInput.files[0];
+      if (!file) return;
+
+      fileName.textContent = file.name;
+      audioPlayer.src = URL.createObjectURL(file);
+      preview.style.display = "block";
+    };
+  }
+}
+
+function resetTrackModal() {
+  const title = document.getElementById("trackTitle");
+  const artist = document.getElementById("trackArtist");
+  const soundcloud = document.getElementById("trackSoundcloud");
+
+  const coverInput = document.getElementById("trackCoverInput");
+  const coverPreview = document.getElementById("trackCoverPreview");
+  const coverPlaceholder = document.getElementById("trackCoverPlaceholder");
+
+  const audioInput = document.getElementById("trackAudioInput");
+  const fileName = document.getElementById("trackFileName");
+  const audioPlayer = document.getElementById("trackAudioPlayer");
+  const preview = document.getElementById("trackPreview");
+
+  const status = document.getElementById("trackStatus");
+
+  if (title) title.value = "";
+  if (artist) artist.value = "";
+  if (soundcloud) soundcloud.value = "";
+
+  if (coverInput) coverInput.value = "";
+  if (coverPreview) {
+    coverPreview.src = "";
+    coverPreview.style.display = "none";
+  }
+  if (coverPlaceholder) {
+    coverPlaceholder.style.display = "flex";
+  }
+
+  if (audioInput) audioInput.value = "";
+  if (fileName) fileName.textContent = "Файл не выбран";
+  if (audioPlayer) {
+    audioPlayer.src = "";
+    audioPlayer.load();
+  }
+  if (preview) preview.style.display = "none";
+
+  if (status) status.textContent = "";
+}
+
+async function submitUserTrack() {
+
+  const title = document.getElementById("trackTitle")?.value.trim()
+  const artist = document.getElementById("trackArtist")?.value.trim()
+
+  const genre = document.getElementById("trackGenre")?.value || ""
+  const producer = document.getElementById("trackProducer")?.value || ""
+  const description = document.getElementById("trackDescription")?.value || ""
+
+  const tags = window.getTrackTags ? window.getTrackTags() : []
+
+  const coverFile = document.getElementById("trackCoverInput")?.files[0] || null
+  const audioFile = document.getElementById("trackAudioInput")?.files[0] || null
+
+  const status = document.getElementById("trackStatus")
+  if (status) status.textContent = ""
+
+  if (!title) {
+    if (status) status.textContent = "Название обязательно"
+    return
+  }
+
+  const formData = new FormData()
+
+  formData.append("title", title)
+  formData.append("artist", artist)
+  formData.append("genre", genre)
+  formData.append("producer", producer)
+  formData.append("description", description)
+  formData.append("tags", JSON.stringify(tags))
+
+  if (coverFile) formData.append("cover", coverFile)
+  if (audioFile) formData.append("audio", audioFile)
+
+  try {
+
+    const res = await fetch("/add-user-track", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token
+      },
+      body: formData
+    })
+
+    const data = await res.json().catch(() => ({}))
+
+    if (!res.ok) {
+      if (status) status.textContent = data.error || "Ошибка загрузки"
+      return
+    }
+
+    // 🔥 УСПЕХ
+    if (status) status.textContent = "Трек загружен 🚀"
+
+    closeTrackModal()
+    resetTrackModal()
+    await loadTracks()
+
+  } catch (err) {
+    console.error(err)
+    if (status) status.textContent = "Ошибка сети"
+  }
+
+}
+
+function openTrackModal() {
+  const modal = document.getElementById("trackModal");
+  if (!modal) return;
+
+  modal.style.display = "flex";
+  resetTrackModal();
+}
+
+function closeTrackModal() {
+  const modal = document.getElementById("trackModal");
+  if (!modal) return;
+
+  modal.style.display = "none";
+}
+
+
+
+function initTrackTags(){
+
+  const container = document.getElementById("trackTagsContainer")
+  const input = document.getElementById("trackTagsInput")
+
+  if(!container || !input) return
+
+  let tags = []
+
+  input.addEventListener("keydown", (e) => {
+
+    if(e.key === "Enter"){
+      e.preventDefault()
+
+      const value = input.value.trim().toLowerCase()
+      if(!value || tags.includes(value)) return
+
+      tags.push(value)
+
+      const tag = document.createElement("div")
+      tag.className = "tag"
+
+      const span = document.createElement("span")
+      span.textContent = value
+
+      const remove = document.createElement("span")
+      remove.textContent = "×"
+      remove.className = "tag-remove"
+
+      remove.onclick = () => {
+        tag.remove()
+        tags = tags.filter(t => t !== value)
+      }
+
+      tag.appendChild(span)
+      tag.appendChild(remove)
+
+      container.insertBefore(tag, input)
+
+      input.value = ""
+    }
+
+  })
+
+  // 👉 делаем доступ к тегам глобально
+  window.getTrackTags = () => tags
 
 }
 
@@ -387,3 +655,7 @@ window.saveProfile = saveProfile
 window.editUsername = editUsername
 window.saveUsername = saveUsername
 window.cancelUsernameEdit = cancelUsernameEdit
+
+window.openTrackModal = openTrackModal
+window.closeTrackModal = closeTrackModal
+window.submitUserTrack = submitUserTrack

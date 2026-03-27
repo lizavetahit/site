@@ -1,10 +1,13 @@
 <!doctype html>
 <html lang="ru">
 <head>
+
+  <script src="https://w.soundcloud.com/player/api.js"></script>
  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="/styles/base.css">
 <link rel="stylesheet" href="/styles/navbar.css">
+<link rel="stylesheet" href="/styles/player.css">
 <link rel="stylesheet" href="/styles/style.css">
 <link rel="stylesheet" href="/styles/judge.css">
 
@@ -15,6 +18,7 @@
 
 <script src="https://w.soundcloud.com/player/api.js"></script>
 <script src="/js/judge.js"></script>
+
 </head>
 
 
@@ -27,6 +31,8 @@
 </div>    
 
 <div id="navbar"></div>
+<div id="player"></div>
+<script src="/js/player.js"></script>
 
 <script>
 fetch("/html/components/navbar.html")
@@ -112,25 +118,25 @@ fetch("/html/components/navbar.html")
 
 <div class="row">
 <div class="rowTitle">РИФМЫ И ОБРАЗЫ</div>
-<input id="s1" type="range" min="1" max="10" value="10">
+<input id="s1" type="range" min="1" max="10" value="1">
 <div class="valueBox" id="v1">10</div>
 </div>
 
 <div class="row">
 <div class="rowTitle">СТРУКТУРА И РИТМИКА</div>
-<input id="s2" type="range" min="1" max="10" value="10">
+<input id="s2" type="range" min="1" max="10" value="1">
 <div class="valueBox" id="v2">10</div>
 </div>
 
 <div class="row">
 <div class="rowTitle">РЕАЛИЗАЦИЯ СТИЛЯ</div>
-<input id="s3" type="range" min="1" max="10" value="10">
+<input id="s3" type="range" min="1" max="10" value="1">
 <div class="valueBox" id="v3">10</div>
 </div>
 
 <div class="row">
 <div class="rowTitle">ИНДИВИДУАЛЬНОСТЬ И ХАРИЗМА</div>
-<input id="s4" type="range" min="1" max="10" value="10">
+<input id="s4" type="range" min="1" max="10" value="1">
 <div class="valueBox" id="v4">10</div>
 </div>
 

@@ -1,145 +1,163 @@
-<link rel="stylesheet" href="/styles/track.css">
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Трек</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/styles/base.css">
+  <link rel="stylesheet" href="/styles/navbar.css">
+  <link rel="stylesheet" href="/styles/player.css">
+  <link rel="stylesheet" href="/styles/style.css">
+  <link rel="stylesheet" href="/styles/track.css">
+
+  <script src="https://w.soundcloud.com/player/api.js"></script>
+</head>
+<body>
+
+<div class="video-background">
+  <video autoplay muted loop playsinline id="background-video">
+    <source src="/images/bg.mp4" type="video/mp4">
+  </video>
+</div>
 
 <div id="navbar"></div>
+<div id="player"></div>
+<script src="/js/player.js"></script>
+
+<script>
+fetch("/html/components/navbar.html")
+.then(res => res.text())
+.then(data => {
+  document.getElementById("navbar").innerHTML = data;
+
+  const script = document.createElement("script");
+  script.src = "/js/navbar.js";
+  document.body.appendChild(script);
+});
+</script>
 
 <div class="track-page">
+  <div class="track-card">
 
-<div class="track-card">
+    <div class="track-top">
+      <div class="track-cover-wrap">
+        <img id="trackCover" class="track-cover" src="">
+      </div>
 
-<div class="track-header">
+      <div class="track-info">
+        <small class="track-kicker">СТРАНИЦА ТРЕКА</small>
+        <h1 id="trackName">Название трека</h1>
+        <h2 id="trackArtist">Артист</h2>
 
-<div class="track-player">
+        <div class="track-scores">
+         <div class="score-chip score-chip-judge" id="judgeHover">
 
-<iframe 
-id="soundcloud-player"
-width="100%" 
-height="120"
-scrolling="no"
-frameborder="no"
-allow="autoplay"
-src="">
-</iframe>
+  <span>🎧 Судьи</span>
+  <span id="judgeScore">—</span>
 
-</div>   
+  <!-- POPUP -->
+  <div id="judgePopup" class="judge-popup">
+    <div class="judge-popup-content">
 
-<img id="track-cover" class="track-cover">
-
-<div class="track-info">
-
-<h1 id="track-title">Track Name</h1>
-<div class="track-artist" id="track-artist">Artist Name</div>
-
-<div class="track-rating">
-⭐ Общая оценка <span id="track-score">0</span>
+      <div class="judge-header">
+  <div>Судья</div>
+  <div>Рифмы</div>
+  <div>Структура</div>
+  <div>Стиль</div>
+  <div>Харизма</div>
+  <div>Вайб</div>
+  <div>Память</div>
+  <div>AVG</div>
 </div>
 
-<div class="track-reactions">
-<div class="reaction">👍 <span id="likes">0</span></div>
-<div class="reaction">👎 <span id="dislikes">0</span></div>
+      <div id="judgeRows"></div>
+
+    </div>
+  </div>
+
+</div> 
+
+          <div class="score-chip score-chip-user">
+            <span class="score-icon">👥</span>
+            <span>Пользовательские оценки:</span>
+            <b id="userScore">—</b>
+          </div>
+        </div>
+
+        <div class="track-reactions">
+          <button class="reaction-btn" id="likeBtn">👍 <span id="likes">0</span></button>
+          <button class="reaction-btn" id="dislikeBtn">👎 <span id="dislikes">0</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="track-player-box">
+      <div class="custom-player">
+
+        <div id="mp3Player" class="player-ui">
+          <div class="player-track">
+            <div class="vinyl">
+              <img id="playerCover" src="">
+            </div>
+
+            <div class="player-meta">
+              <div id="playerTitle">Track</div>
+              <div id="playerArtist">Artist</div>
+            </div>
+          </div>
+
+          <audio id="trackAudio"></audio>
+
+          <div class="player-left">
+            <button id="playBtn">
+              <span class="icon play"></span>
+              <span class="icon pause"></span>
+            </button>
+          </div>
+
+          <div class="player-center">
+            <div class="progress-wrap" id="progressWrap">
+              <div class="progress" id="progress"></div>
+            </div>
+
+            <div class="time">
+              <span id="current">0:00</span>
+              <span id="duration">0:00</span>
+            </div>
+          </div>
+
+          <div class="player-right">
+            <input type="range" id="volume" min="0" max="1" step="0.01">
+          </div>
+        </div>
+
+        <div id="scWrapper">
+          <iframe id="soundcloudPlayer" allow="autoplay"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <div class="track-panel">
+      <div id="criteriaList" class="criteria-list"></div>
+    </div>
+
+    <div class="track-panel">
+      <h3 class="comments-title">Комментарии</h3>
+
+      <div class="comment-form">
+        <textarea id="commentInput" placeholder="Написать комментарий..."></textarea>
+        <button id="sendComment">Отправить</button>
+      </div>
+
+      <div id="comments"></div>
+    </div>
+
+  </div>
 </div>
 
-</div>
-
-</div>
-
-
-<h2 class="section-title">Критерии оценки</h2>
-
-<div class="criteria">
-
-<div class="criterion">
-
-<div class="criterion-name">
-<span class="criterion-title">Рифмы и образы</span>
-<span class="criterion-desc">Текст, панчи, образность</span>
-</div>
-
-<div class="criterion-bar">
-
-<div class="bar">
-<div class="bar-fill" style="width:70%"></div>
-</div>
-
-<div class="bar-value">7</div>
-
-</div>
-
-</div>
-
-
-<div class="criterion">
-<div class="criterion-name">СТРУКТУРА И РИТМИКА</div>
-<div class="criterion-bar">
-<div class="bar">
-<div class="bar-fill" style="width:80%"></div>
-</div>
-<div class="bar-value">8</div>
-</div>
-</div>
-
-
-<div class="criterion">
-<div class="criterion-name">РЕАЛИЗАЦИЯ СТИЛЯ</div>
-<div class="criterion-bar">
-<div class="bar">
-<div class="bar-fill" style="width:60%"></div>
-</div>
-<div class="bar-value">6</div>
-</div>
-</div>
-
-
-<div class="criterion">
-<div class="criterion-name">ИНДИВИДУАЛЬНОСТЬ И ХАРИЗМА</div>
-<div class="criterion-bar">
-<div class="bar">
-<div class="bar-fill" style="width:90%"></div>
-</div>
-<div class="bar-value">9</div>
-</div>
-</div>
-
-
-<div class="criterion">
-<div class="criterion-name">АТМОСФЕРА И ВАЙБ</div>
-<div class="criterion-bar">
-<div class="bar">
-<div class="bar-fill" style="width:80%"></div>
-</div>
-<div class="bar-value">8</div>
-</div>
-</div>
-
-
-<div class="criterion">
-<div class="criterion-name">ЗАПОМИНАЕМОСТЬ</div>
-<div class="criterion-bar">
-<div class="bar">
-<div class="bar-fill" style="width:70%"></div>
-</div>
-<div class="bar-value">7</div>
-</div>
-</div>
-
-</div>
-
-
-<h2 class="section-title">Комментарии</h2>
-
-<div class="comment-form">
-
-<textarea id="comment-input" placeholder="Написать комментарий..."></textarea>
-
-<button id="send-comment">
-Отправить
-</button>
-
-</div>
-
-<div id="comments"></div>
-</div>
-<script src="/js/track.js" defer></script>
-
-</div>
-
-</div>
+<script src="/js/track.js"></script>
+</body>
+</html>

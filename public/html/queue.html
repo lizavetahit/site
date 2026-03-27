@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
 
 <meta charset="UTF-8">
@@ -8,113 +9,70 @@
 <title>Очередь треков</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles/base.css">
 
+<link rel="stylesheet" href="/styles/base.css">
 <link rel="stylesheet" href="/styles/navbar.css">
+<link rel="stylesheet" href="/styles/player.css">
 <link rel="stylesheet" href="/styles/style.css">
 <link rel="stylesheet" href="/styles/queue.css">
-<link rel="stylesheet" href="/styles/base.css">
 
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
+<script src="https://w.soundcloud.com/player/api.js"></script>
+
 </head>
 
 <body>
+
+<!-- 🔥 ВИДЕО ФОН -->
 <div class="video-background">
   <video autoplay muted loop playsinline id="background-video">
     <source src="/images/bg.mp4" type="video/mp4">
   </video>
 </div>
 
+<!-- 🔥 NAVBAR -->
 <div id="navbar"></div>
 
 <script>
-
 fetch("/html/components/navbar.html")
 .then(res => res.text())
 .then(data => {
+  document.getElementById("navbar").innerHTML = data
 
-document.getElementById("navbar").innerHTML = data
-
-const script = document.createElement("script")
-script.src = "/js/navbar.js"
-document.body.appendChild(script)
-
+  const script = document.createElement("script")
+  script.src = "/js/navbar.js"
+  document.body.appendChild(script)
 })
-
 </script>
 
+<!-- 🔥 PLAYER -->
+<div id="player"></div>
+<script src="/js/player.js"></script>
 
+<!-- 🔥 КОНТЕНТ -->
 <div class="queue-page">
 
-<h1 class="queue-title">Очередь треков</h1>
-
-<div id="queueList" class="queue-list">
-
-<div class="track-card">
-
-<div class="track-left">
-
-<img src="https://i.scdn.co/image/ab67616d0000b273947f6b95c89e4c1f7c43a44b" class="track-cover">
-
-<div class="track-info">
-<div class="track-artist">Drake</div>
-<div class="track-title">Gods Plan</div>
+  <div class="queue-header">
+  <h1 class="queue-title">Очередь треков</h1>
+  <div id="queueStatusText" class="queue-status">загрузка...</div>
 </div>
 
+  <div id="adminControls" class="queue-admin hidden">
+  <button id="openQueue">Открыть</button>
+  <button id="pauseQueue">Пауза</button>
+  <button id="resumeQueue">Возобновить</button>
+  <button id="closeQueue" class="danger">Закрыть</button>
 </div>
 
-<div class="track-actions">
-
-<button class="judge-btn">
-<i class="fa-solid fa-play"></i>
-Оценить
-</button>
-
-<button class="delete-btn">
-<i class="fa-solid fa-trash"></i>
-</button>
+  <!-- ❗ ВАЖНО: ПУСТОЙ контейнер -->
+  <div id="queueList" class="queue-list"></div>
 
 </div>
 
-</div>
-
-<div class="track-card">
-
-<div class="track-left">
-
-<img src="https://i.scdn.co/image/ab67616d0000b2739b7e6cba6e8c7c3d6c02ab73" class="track-cover">
-
-<div class="track-info">
-<div class="track-artist">Travis Scott</div>
-<div class="track-title">FE!N</div>
-</div>
-
-</div>
-
-<div class="track-actions">
-
-<button class="judge-btn">
-<i class="fa-solid fa-play"></i>
-Оценить
-</button>
-
-<button class="delete-btn">
-<i class="fa-solid fa-trash"></i>
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-
+<!-- 🔥 JS -->
 <script src="/js/queue.js"></script>
 
 </body>
-
 </html>

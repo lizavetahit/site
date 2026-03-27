@@ -1,4 +1,29 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+  async function checkQueueState() {
+  try {
+    const res = await fetch("/api/queue/state");
+    const data = await res.json();
+
+    const submitBtn = document.querySelector("button[type='submit']");
+
+    if (data.state !== "open") {
+      submitBtn.disabled = true;
+
+      if (data.state === "closed") {
+        setStatus("Очередь закрыта", "error");
+      }
+
+      if (data.state === "paused") {
+        setStatus("Очередь временно приостановлена", "error");
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
   const coverInput = document.getElementById("coverInput");
   const coverPreview = document.getElementById("coverPreview");
   const coverPlaceholder = document.getElementById("coverPlaceholder");
@@ -16,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const trackForm = document.getElementById("trackForm");
 
   let externalCoverUrl = null;
+  
 
   function setStatus(message, type = "") {
     statusText.textContent = message;
@@ -128,10 +154,15 @@ if (externalCoverUrl) {
     try {
       setStatus("Отправка...");
 
-      const res = await fetch("/api/tracks", {
-        method: "POST",
-        body: formData
-      });
+      const token = localStorage.getItem("token");
+
+const res = await fetch("/api/tracks", {
+  method: "POST",
+  headers: {
+    Authorization: "Bearer " + token
+  },
+  body: formData
+});
 
       const data = await res.json();
 
@@ -158,5 +189,6 @@ if (externalCoverUrl) {
     }
   });
 
-  
+  checkQueueState();
+setInterval(checkQueueState, 3000);
 });

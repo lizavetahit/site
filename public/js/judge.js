@@ -31,10 +31,82 @@ const playerArtist = document.getElementById("playerArtist");
   // UI / popup
   // -------------------------
   if (rateBtn) {
-    rateBtn.addEventListener("click", () => {
+  rateBtn.addEventListener("click", async () => {
+
+    const params = new URLSearchParams(window.location.search);
+    const trackId = params.get("track");
+
+    if (!trackId) return;
+
+    const total = Number(document.getElementById("total").textContent);
+
+    try {
+      const token = localStorage.getItem("token");
+
+      // 🔥 узнаем роль
+      const meRes = await fetch("/me", {
+        headers: {
+          Authorization: "Bearer " + token
+        }
+      });
+
+      const me = await meRes.json();
+
+      let endpoint = "/api/rate/user";
+
+      if (me.role === "judge" || me.role === "admin") {
+        endpoint = "/api/rate/judge";
+      }
+
+      // 🔥 отправка оценки
+      const res = await fetch(endpoint, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: "Bearer " + token
+  },
+  body: JSON.stringify({
+    track_id: trackId,
+    score: total,
+
+    rhymes: Number(document.getElementById("s1").value),
+    structure: Number(document.getElementById("s2").value),
+    style: Number(document.getElementById("s3").value),
+    charisma: Number(document.getElementById("s4").value),
+    vibe: Number(document.getElementById("b1").value),
+    memory: Number(document.getElementById("b2").value)
+  })
+});
+
+const data = await res.json();
+
+if (!res.ok) {
+  console.error("RATE ERROR:", data);
+  alert("Ошибка: " + (data.error || "неизвестная ошибка"));
+  return;
+  
+}
+
+      // 🔥 перезагрузка данных
+const updated = await fetch(`/api/tracks/${trackId}`);
+const updatedTrack = await updated.json();
+
+if (document.getElementById("judgeScore")) {
+  document.getElementById("judgeScore").textContent = updatedTrack.judge_score ?? "—";
+}
+
+if (document.getElementById("userScore")) {
+  document.getElementById("userScore").textContent = updatedTrack.user_score ?? "—";
+}
+
+      // ✅ popup
       const popup = document.createElement("div");
       popup.className = "rate-popup";
-      popup.textContent = "🔥 Оценка сохранена";
+      popup.textContent = "Оценка сохранена";
+      setTimeout(() => {
+  window.location.href = "/html/queue.html";
+}, 1500);
+
 
       document.body.appendChild(popup);
 
@@ -44,8 +116,14 @@ const playerArtist = document.getElementById("playerArtist");
         popup.classList.remove("show");
         setTimeout(() => popup.remove(), 300);
       }, 2000);
-    });
-  }
+
+    } catch (err) {
+      console.error(err);
+      alert("Ошибка оценки");
+    }
+
+  });
+}
 
   // -------------------------
   // Sliders
@@ -374,6 +452,17 @@ audio.addEventListener("pause", () => {
       if (!res.ok) throw new Error("Ошибка загрузки трека");
 
       const track = await res.json();
+      // 🔥 вывод оценок
+const judgeEl = document.getElementById("judgeScore");
+const userEl = document.getElementById("userScore");
+
+if (judgeEl) {
+  judgeEl.textContent = track.judge_score ?? "—";
+}
+
+if (userEl) {
+  userEl.textContent = track.user_score ?? "—";
+}
 
 
       trackName.textContent = track.title || "Без названия";
@@ -404,6 +493,83 @@ playerArtist.textContent = track.artist || "Unknown artist";
       console.error("Ошибка загрузки трека:", err);
     }
   }
+(async () => {
+  await loadMyRating();
+
+  // 🔥 обновляем UI сразу
+  document.querySelectorAll('input[type="range"]').forEach(el => {
+    setFill(el);
+  });
+
+  recalc();
 
   loadTrackPlayer();
+  checkIfRated();
+})();
 });
+
+async function checkIfRated() {
+  const params = new URLSearchParams(window.location.search);
+  const trackId = params.get("track");
+
+  const token = localStorage.getItem("token");
+  if (!token || !trackId) return;
+
+  try {
+    const res = await fetch(`/api/rate/check/${trackId}`, {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    });
+
+    const data = await res.json();
+
+    if (data.rated) {
+      const btn = document.getElementById("rateBtn");
+
+      btn.textContent = "Вы уже оценили (обновить)";
+      btn.style.opacity = "0.7";
+    }
+
+  } catch (err) {
+    console.error("CHECK RATE ERROR:", err);
+  }
+}
+
+async function loadMyRating() {
+  const params = new URLSearchParams(window.location.search);
+  const trackId = params.get("track");
+
+  const token = localStorage.getItem("token");
+  if (!token || !trackId) return;
+
+  try {
+    const res = await fetch(`/api/rate/my/${trackId}`, {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+    if (!data) return;
+
+    document.getElementById("s1").value = data.rhymes ?? 0;
+    document.getElementById("s2").value = data.structure ?? 0;
+    document.getElementById("s3").value = data.style ?? 0;
+    document.getElementById("s4").value = data.charisma ?? 0;
+
+    document.getElementById("b1").value = data.vibe ?? 0;
+    document.getElementById("b2").value = data.memory ?? 0;
+
+    // 🔥 ВАЖНО — пересчет тут
+   
+
+  } catch (err) {
+    console.error("loadMyRating error", err);
+  }
+}
+
+// 🔥 вызываем один раз
+

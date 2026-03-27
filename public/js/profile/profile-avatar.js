@@ -217,6 +217,10 @@ function initAvatarCrop(){
   if(!avatarInput) return;
 
   avatarInput.addEventListener("change", e=>{
+    if(!isMyProfile()){
+    alert("Это не твой профиль 😈");
+    return;
+  }
 
     const file = e.target.files[0];
     if(!file) return;

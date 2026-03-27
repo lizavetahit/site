@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
+
+<script src="https://w.soundcloud.com/player/api.js"></script>
 <head>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles/base.css">
 <link rel="stylesheet" href="/styles/navbar.css">   
@@ -78,18 +80,7 @@
 </div>
 
 <script src="/js/register.js"></script>
-
-<script>
-fetch("/html/components/navbar.html")
-  .then(res => res.text())
-  .then(data => {
-    document.getElementById("navbar").innerHTML = data;
-
-    const script = document.createElement("script");
-    script.src = "/js/navbar.js";
-    document.body.appendChild(script);
-  });
-</script>
+<script src="/js/navbar.js"></script>
 
 
 <div id="codeModal" class="code-modal hidden">

@@ -20,26 +20,17 @@ gap:18px;
 }
 
 .track-card {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  display: block;
+  width: 100%;
+  align-items: stretch;
+  gap: 12px;
+  overflow: hidden;
 
-  background: rgba(69, 34, 46, 0.6);
-
-  padding:16px 18px;
-
-  border-radius:14px;
-
-  border:1px solid rgba(255,255,255,0.05);
-
-  transition:0.2s;
+  background: none;
+  padding: 0;
+  border: none;
 }
 
-.track-card:hover {
-  border-color: #b07497;
-  box-shadow: 0 0 0 1px rgba(201, 36, 154, 0.15);
-  transform: translateY(-2px);
-}
 
 .track-left {
   display: flex;
@@ -75,12 +66,7 @@ font-weight:600;
   color: rgba(255,255,255,0.5);
 }
 
-.track-actions{
 
-display:flex;
-gap:10px;
-
-}
 
 .judge-btn {
   background: rgba(176,116,151,0.2);
@@ -145,10 +131,106 @@ border: 1px solid rgba(223, 202, 211, 0.159);
 
   text-align: center;
 }
-.track-actions {
-  position: relative;
-  z-index: 10;
-}
+
 .video-background {
   pointer-events: none;
+}
+
+
+
+/* основная часть */
+.track-main {
+  width: 100%;
+  flex: 1;
+  position: relative;
+  display: flex;                 /* 🔥 ГЛАВНОЕ */
+  justify-content: space-between; /* 🔥 раскидывает */
+  align-items: center;           /* 🔥 выравнивает */
+
+  background: rgba(69, 34, 46, 0.6);
+  padding: 16px 18px;
+
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.05);
+
+  transition: 0.2s;
+}
+
+.track-main:hover {
+  border-color: #b07497;
+  box-shadow: 0 0 0 1px rgba(201, 36, 154, 0.15);
+  transform: translateY(-2px);
+}
+
+
+.track-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  position: relative;
+  z-index: 10; /* 🔥 ВАЖНО */
+}
+
+.judge-btn,
+.delete-btn {
+  position: relative;
+  z-index: 20; /* 🔥 кнопки выше всего */
+}
+
+.queue-admin {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.queue-admin button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(69,34,46,0.6);
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.queue-admin button:hover {
+  border-color: #b07497;
+}
+
+.queue-admin .danger {
+  border-color: rgba(255,80,80,0.4);
+  background: rgba(80,20,20,0.4);
+}
+
+.hidden {
+  display: none;
+}
+
+.queue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.queue-status {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+}
+
+/* состояния */
+.queue-status.open {
+  color: #4ade80;
+  border-color: rgba(74,222,128,0.4);
+}
+
+.queue-status.closed,
+.queue-status.paused {
+  color: #f87171;
+  border-color: rgba(248,113,113,0.4);
 }

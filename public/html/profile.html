@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
+
+<script src="https://w.soundcloud.com/player/api.js"></script>
 <head>
 
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet">
@@ -11,8 +13,11 @@
 
   <link rel="stylesheet" href="/styles/base.css">
   <link rel="stylesheet" href="/styles/style.css" />
+  <link rel="stylesheet" href="/styles/player.css">
   <link rel="stylesheet" href="/styles/profile.css" />
+  <link rel="stylesheet" href="/styles/profile-tracks.css">
   <link rel="stylesheet" href="/styles/navbar.css">
+  <link rel="stylesheet" href="/styles/upload.css">
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -27,7 +32,9 @@
 </div>
 
 <div id="navbar"></div>
+<div id="player"></div>
 <script src="/js/navbar.js"></script>
+<script src="/js/player.js"></script>
 
 
 </script>
@@ -140,7 +147,7 @@
 
 <div class="section-header">
 <h3>Треки</h3>
-<button class="secondary-btn" onclick="addTrack()">＋ Трек</button>
+<button class="secondary-btn" onclick="openTrackModal()">＋ Трек</button>
 </div>
 
 <div id="tracksContainer"></div>
@@ -317,11 +324,113 @@
   </div>
 </div>
 
+<div id="trackModal" class="post-modal">
+  <div class="post-modal-content">
+    <button class="post-modal-close" onclick="closeTrackModal()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="post-modal-left">
+      <h3 class="post-modal-title">Загрузить трек</h3>
+
+      <div class="form-grid">
+
+  <div class="cover-block">
+    <label class="cover-label">
+      <div class="cover-placeholder" id="trackCoverPlaceholder">
+        <div class="hash">#</div>
+        <div>cover</div>
+      </div>
+      <img id="trackCoverPreview" class="cover-preview">
+      <input type="file" id="trackCoverInput" hidden accept="image/*">
+    </label>
+
+    <div class="cover-hint">
+      Нажми, чтобы загрузить обложку
+    </div>
+
+    <div class="cover-bottom">
+      <div class="cover-ps">
+        p.s. благодаря тэгам и жанрам,<br>
+        ваши треки попадают в рекомендации
+      </div>
+    </div>
+  </div>
+
+  <div class="right-side">
+
+    <div class="top-row">
+      <div class="field">
+        <label>Артист(ы)</label>
+        <input id="trackArtist" placeholder="ник артиста или артистов">
+      </div>
+
+      <div class="field">
+        <label>Название трека</label>
+        <input id="trackTitle" placeholder="Название трека">
+      </div>
+    </div>
+
+    <div class="top-row">
+      <div class="field">
+        <label>Жанр</label>
+        <input id="trackGenre" placeholder="archivecore, hyperpop...">
+      </div>
+
+      <div class="field">
+        <label>Продюсер</label>
+        <input id="trackProducer" placeholder="Producer name">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Тэги</label>
+      <div class="tags-input" id="trackTagsContainer">
+        <input id="trackTagsInput" placeholder="Add styles, moods...">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Описание</label>
+      <textarea id="trackDescription" placeholder="Напиши что-то о треке..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Аудиофайл</label>
+
+      <label class="file-input">
+        <span class="file-btn">Выбрать файл</span>
+        <span id="trackFileName">Файл не выбран</span>
+        <input type="file" id="trackAudioInput" hidden accept="audio/*">
+      </label>
+    </div>
+
+    <div class="preview" id="trackPreview">
+      <audio controls id="trackAudioPlayer"></audio>
+    </div>
+
+  </div>
+</div>
+
+      <div class="post-modal-actions">
+        <button type="button" class="secondary-btn" onclick="closeTrackModal()">
+          Отмена
+        </button>
+
+        <button type="button" class="primary-btn" onclick="submitUserTrack()">
+          Загрузить трек
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="/js/profile/profile-user.js"></script>
 <script src="/js/profile/profile-avatar.js"></script>
 <script src="/js/profile/profile-posts.js"></script>
 <script src="/js/profile/profile-editor.js"></script>
 <script src="/js/profile/profile-tabs.js"></script>
+<script src="/js/profile/profile-tracks.js"></script>
 <script src="/js/profile/profile-settings.js"></script>
 <script src="/js/profile/profile-main.js"></script>
 

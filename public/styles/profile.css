@@ -581,18 +581,12 @@ color:white;
 
 
 
-.tab-content{
-
-display:none;
-
-padding-right:4px;
-
+.tab-content {
+  display: none !important;
 }
 
-.tab-content.active{
-
-display:block;
-
+.tab-content.active {
+  display: block !important;
 }
 
 
@@ -1865,7 +1859,7 @@ background:rgba(255,70,70,.12);
   color: #9ca3af;
 }
 
-.track-play {
+#tracksContainer .track-play {
   width: 40px;
   height: 40px;
 
@@ -1880,7 +1874,7 @@ background:rgba(255,70,70,.12);
   transition: .2s;
 }
 
-.track-play:hover {
+#tracksContainer .track-play:hover {
   background: rgba(139,92,246,0.4);
   transform: scale(1.1);
 }
@@ -2039,4 +2033,191 @@ background:rgba(255,70,70,.12);
 
 .current-email span{
   color: #e5e7eb;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 30px;
+}
+
+.cover-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  height: 100%;
+}
+
+.cover-label {
+  width: 200px;
+  height: 200px;
+
+  border-radius: 18px;
+
+  background: rgba(255,255,255,0.03);
+  border: 1px dashed rgba(255,255,255,0.2);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  overflow: hidden;
+
+  transition: 0.25s;
+}
+
+/* 🔥 ХОВЕР */
+.cover-label:hover {
+  border: 1px dashed #8b5cf6;
+  background: rgba(139,92,246,0.12);
+
+  transform: scale(1.03);
+}
+
+/* 🔥 АКТИВ */
+.cover-label:active {
+  transform: scale(0.97);
+}
+
+.cover-placeholder {
+  text-align: center;
+  color: #aaa;
+}
+
+.hash {
+  font-size: 60px;
+  font-weight: bold;
+}
+
+.cover-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+/* 📄 правая часть */
+.right-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field label {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.field input {
+  height: 52px;
+
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+
+  background: rgba(255,255,255,0.04);
+
+  color: white;
+  padding: 0 16px;
+
+  transition: 0.2s;
+}
+
+.field input:focus {
+  outline: none;
+  border: 1px solid #8b5cf6;
+  background: rgba(255,255,255,0.06);
+
+  box-shadow: 0 0 0 2px rgba(139,92,246,0.2);
+}
+
+/* 📁 файл */
+.file-input {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px;
+  border-radius: 12px;
+
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+
+  cursor: pointer;
+
+  transition: 0.25s;
+}
+
+.file-input:hover {
+  border: 1px solid #8b5cf6;
+  background: rgba(139,92,246,0.12);
+
+  transform: translateY(-1px);
+}
+
+.file-input:active {
+  transform: scale(0.98);
+}
+
+.file-input:hover .file-btn {
+  background: rgba(139,92,246,0.3);
+}
+
+.file-btn {
+  background: rgba(255,255,255,0.1);
+  padding: 6px 12px;
+  border-radius: 10px;
+}
+
+/* 🎧 preview */
+.preview {
+  display: none;
+}
+
+.track-upload-grid {
+  margin-top: 10px;
+}
+
+body.foreign-profile .create-post-btn {
+  display: none !important;
+}
+
+body.foreign-profile #tracksTab .secondary-btn {
+  display: none !important;
+}
+
+body.foreign-profile .profile-actions .main-btn,
+body.foreign-profile .profile-actions .secondary-btn {
+  display: none !important;
+}
+
+/* ❌ чужой профиль — убираем всё редактирование */
+body.foreign-profile .avatar-edit-btn,
+body.foreign-profile .edit-username-btn,
+body.foreign-profile .create-post-btn,
+body.foreign-profile .profile-actions,
+body.foreign-profile .secondary-btn {
+  display: none !important;
+}
+
+body.foreign-profile .profile-avatar * {
+  pointer-events: none;
+}
+
+body.foreign-profile .avatar-edit-btn,
+body.foreign-profile .avatar-overlay {
+  display: none !important;
 }

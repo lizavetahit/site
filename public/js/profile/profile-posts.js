@@ -1,8 +1,20 @@
+
+const params = new URLSearchParams(window.location.search);
+const profileId = params.get("id");
+
 async function loadPosts(){
 
-const res = await fetch("/my-posts",{
+
+
+let url = "/my-posts";
+
+if(profileId){
+  url = "/posts/" + profileId;
+}
+
+const res = await fetch(url,{
 headers:{
-Authorization:"Bearer "+token
+  Authorization:"Bearer "+localStorage.getItem("token")
 }
 })
 
@@ -18,6 +30,7 @@ const container = document.getElementById("postsContainer")
 if(!container) return
 
 container.innerHTML=""
+
 
 posts.forEach(post=>{
 
@@ -104,6 +117,7 @@ container.innerHTML += `
 
 </div>
 
+${!profileId ? `
 <div class="post-menu-container">
 
 <button class="post-menu-btn" onclick="togglePostMenu(${post.id})">
@@ -135,6 +149,7 @@ container.innerHTML += `
 </div>
 
 </div>
+` : ""}
 
 </div> <!-- ВОТ ЭТОЙ СТРОКИ У ТЕБЯ НЕ ХВАТАЛО -->
 
@@ -240,7 +255,7 @@ try{
 
 const res = await fetch("/delete-post/"+id,{
 method:"DELETE",
-headers:{ Authorization:"Bearer "+token }
+headers:{ Authorization:"Bearer "+localStorage.getItem("token") }
 })
 
 if(!res.ok){
@@ -268,9 +283,7 @@ try{
 
 const res = await fetch("/archive-post/"+id,{
 method:"PUT",
-headers:{
-Authorization:"Bearer "+token
-}
+headers:{ Authorization:"Bearer "+localStorage.getItem("token") }
 })
 
 if(!res.ok){
@@ -462,6 +475,10 @@ if(e.target.tagName!=="VIDEO") return
 const player=e.target.closest(".video-player")
 
 player.classList.remove("hide-ui")
+
+if (someElement) {
+  someElement.classList.add("something");
+}
 
 },true)
 

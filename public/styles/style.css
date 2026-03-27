@@ -604,3 +604,107 @@ border-radius:10px;
   display: flex;
   justify-content: center;
 }
+
+/* 🔍 SEARCH */
+
+.nav-search{
+  position: relative;
+
+  margin-left: auto;  /* 🔥 ВОТ ЭТО ДВИГАЕТ ВПРАВО */
+  margin-right: 10px; /* 👉 регулируешь расстояние до "Главная" */
+}
+
+.nav-search input{
+  width: 420px;
+  padding: 10px 14px;
+
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+
+  background: rgba(20,20,35,0.6);
+  backdrop-filter: blur(10px);
+
+  color: white;
+  outline: none;
+
+  transition: .2s;
+}
+
+.nav-search input:focus{
+  border-color: #8b5cf6;
+  box-shadow: 0 0 10px rgba(139,92,246,0.3);
+}
+
+/* dropdown */
+
+.search-results{
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 420px; /* 🔥 равен input */
+
+  padding: 8px;
+
+  background: rgba(15,15,25,0.95);
+  backdrop-filter: blur(20px);
+
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.05);
+
+  max-height: 300px;
+  overflow-y: auto;
+
+  display: none;
+  z-index: 999;
+}
+
+.search-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  padding:10px 12px;
+  border-radius:10px;
+
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.search-item:hover{
+  background: rgba(139,92,246,0.15);
+}
+
+.search-item img{
+  width:48px;
+  height:48px;
+  border-radius:8px;
+  object-fit:cover;
+}
+
+.search-icon{
+  position:absolute;
+  left:14px;
+  top:50%;
+  transform:translateY(-50%);
+
+  color:#fff; /* 🔥 ярче */
+  opacity:0.7;
+
+  font-size:15px;
+  pointer-events:none;
+}
+
+.nav-search input:focus + .search-results,
+.nav-search input:focus ~ .search-icon{
+  opacity:1;
+  color:#8b5cf6;
+}
+
+.nav-search{
+  position:relative;
+}
+
+.nav-search input{
+  padding-left:40px; /* 🔥 чтобы текст не залезал на лупу */
+}
+

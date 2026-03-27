@@ -3,11 +3,32 @@
     <span class="logo-text">#РИТМОРИЯ</span>
   </a>
 
+  <button class="nav-headphones" onclick="togglePlayer()">🎧</button>
+
+  <div class="nav-search">
+    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+
+    <input 
+  type="text" 
+  id="globalSearch" 
+  placeholder="Поиск треков, пользователей..."
+  autocomplete="off"
+  autocorrect="off"
+  autocapitalize="off"
+  spellcheck="false"
+/>
+
+    <div id="searchResults" class="search-results"></div>
+  </div>
+
   <nav>
     <a href="/html/index.html">Главная</a>
     <a href="/html/submit.html">Скинуть трек</a>
+    <a href="/html/queue.html" class="queue-link">
+  Очередь
+  <span id="queueStatus" class="queue-dot"></span>
+</a>
     <a href="/html/discover.html">Дискавер</a>
-    <a href="/html/upload.html" class="upload-link">Загрузить трек</a>
 
     <!-- Гость -->
     <div id="navGuest">
@@ -26,6 +47,11 @@
         <div class="dropdown-item" onclick="goToProfile()">Профиль</div>
         <div class="dropdown-item" onclick="goToSettings()">Настройки</div>
         <div class="dropdown-divider"></div>
+
+        <div id="adminPanelBtn" class="dropdown-item hidden" onclick="goToAdmin()">
+          Админ панель
+        </div>
+
         <div class="dropdown-item logout" onclick="logout()">Выйти</div>
       </div>
     </div>

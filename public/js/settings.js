@@ -6,10 +6,13 @@ async function openSettings(type){
 
   modal.style.display = "flex"
 
-  if(type === "archive"){
-    title.innerText = "Архив"
-    body.innerHTML = "<p>Тут будут архивированные посты и треки</p>"
-  }
+ if(type === "archive"){
+  title.innerText = "Архив"
+
+  body.innerHTML = `<div id="archiveList">Загрузка...</div>`
+
+  loadArchive()
+}
 
   if(type === "privacy"){
 
@@ -315,4 +318,116 @@ async function setPassword(){
   }
 
   openSettings("privacy");
+}
+
+async function loadArchive(){
+
+  const token = localStorage.getItem("token")
+  const container = document.getElementById("archiveList")
+
+  try{
+
+    const res = await fetch("/archived-posts",{
+      headers:{
+        "Authorization":"Bearer " + token
+      }
+    })
+
+    const posts = await res.json()
+
+    if(posts.length === 0){
+      container.innerHTML = "<p>Архив пуст</p>"
+      return
+    }
+
+    container.innerHTML = `
+  <div class="archive-grid">
+    ${posts.map(p => {
+
+      const date = new Date(p.created_at)
+      const formattedDate = date.toLocaleDateString("ru-RU", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      })
+
+      return `
+        <div class="archive-card" onclick='openPost(${JSON.stringify(p)})'>
+
+          ${p.media_url ? `
+            ${
+              p.media_type === "image"
+              ? `<img src="${p.media_url}">`
+              : `<video src="${p.media_url}" muted></video>`
+            }
+          ` : `<div class="no-media">Текст</div>`}
+
+          <div class="archive-overlay">
+
+            <div class="archive-date">${formattedDate}</div>
+
+            <button onclick="event.stopPropagation(); unarchivePost(${p.id})">
+              Вернуть
+            </button>
+
+          </div>
+
+        </div>
+      `
+    }).join("")}
+  </div>
+`
+
+  }catch(err){
+    console.log(err)
+    container.innerHTML = "Ошибка загрузки"
+  }
+
+}
+
+async function unarchivePost(id){
+
+  const token = localStorage.getItem("token")
+
+  await fetch(`/archive-post/${id}`,{
+    method:"PUT",
+    headers:{
+      "Authorization":"Bearer " + token
+    }
+  })
+
+  loadArchive()
+}
+
+function openPost(post){
+
+  const modal = document.getElementById("viewPostModal")
+  const body = document.getElementById("viewPostBody")
+
+  modal.style.display = "flex"
+
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px;">
+      <img src="${post.avatar}" style="width:40px;height:40px;border-radius:50%">
+      <span style="font-weight:600">${post.username}</span>
+    </div>
+
+    ${post.content ? `
+      <div style="margin-bottom:15px;font-size:15px;line-height:1.4;">
+        ${post.content}
+      </div>
+    ` : ""}
+
+    ${post.media_url ? `
+      ${
+        post.media_type === "image"
+        ? `<img src="${post.media_url}" style="width:100%;border-radius:14px">`
+        : `<video src="${post.media_url}" controls style="width:100%;border-radius:14px"></video>`
+      }
+    ` : ""}
+  `
+}
+
+function closeViewPost(){
+  document.getElementById("viewPostModal").style.display = "none"
 }

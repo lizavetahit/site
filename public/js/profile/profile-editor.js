@@ -38,32 +38,39 @@ function resetPostEditor() {
   const progressBar = document.getElementById("uploadBar");
   const mediaActions = document.getElementById("mediaActions");
   const mediaHint = document.getElementById("mediaHint");
+  const modal = document.getElementById("postModal");
 
   if (text) text.value = "";
   if (mediaInput) mediaInput.value = "";
 
-  if (preview) preview.classList.add("hidden");
+  if (preview) preview.classList.add("profile-hidden");
   if (image) {
     image.src = "";
     image.style.transform = "";
     image.style.left = "0px";
     image.style.top = "0px";
+    image.classList.add("profile-hidden");
   }
 
   if (video) {
     video.src = "";
     video.load();
+    video.classList.add("profile-hidden");
   }
 
   if (zoom) {
     zoom.value = 1;
-    zoom.classList.add("hidden");
+    zoom.classList.add("profile-hidden");
   }
 
-  if (progressWrap) progressWrap.classList.add("hidden");
+  if (progressWrap) progressWrap.classList.add("profile-hidden");
   if (progressBar) progressBar.style.width = "0%";
-  if (mediaActions) mediaActions.classList.add("hidden");
-  if (mediaHint) mediaHint.classList.remove("hidden");
+  if (mediaActions) mediaActions.classList.add("profile-hidden");
+  if (mediaHint) mediaHint.classList.remove("profile-hidden");
+
+  if (modal) {
+    delete modal.dataset.editId;
+  }
 
   postEditorState = {
     file: null,
@@ -152,13 +159,13 @@ function initImageEditor(file) {
   };
 
   image.src = objectUrl;
-  image.classList.remove("hidden");
-  video.classList.add("hidden");
-  preview.classList.remove("hidden");
-  zoom.classList.remove("hidden");
+  image.classList.remove("profile-hidden");
+  video.classList.add("profile-hidden");
+  preview.classList.remove("profile-hidden");
+  zoom.classList.remove("profile-hidden");
 
-  if (mediaActions) mediaActions.classList.remove("hidden");
-  if (mediaHint) mediaHint.classList.add("hidden");
+  if (mediaActions) mediaActions.classList.remove("profile-hidden");
+  if (mediaHint) mediaHint.classList.add("profile-hidden");
 }
 
 function initVideoEditor(file) {
@@ -183,13 +190,13 @@ function initVideoEditor(file) {
   postEditorState.imageUrl = "";
 
   video.src = objectUrl;
-  video.classList.remove("hidden");
-  image.classList.add("hidden");
-  preview.classList.remove("hidden");
-  zoom.classList.add("hidden");
+  video.classList.remove("profile-hidden");
+  image.classList.add("profile-hidden");
+  preview.classList.remove("profile-hidden");
+  zoom.classList.add("profile-hidden");
 
-  if (mediaActions) mediaActions.classList.remove("hidden");
-  if (mediaHint) mediaHint.classList.add("hidden");
+  if (mediaActions) mediaActions.classList.remove("profile-hidden");
+  if (mediaHint) mediaHint.classList.add("profile-hidden");
 }
 
 function handleSelectedFile(file) {
@@ -256,112 +263,68 @@ function clampImagePosition() {
 }
 
 function startImageDrag(clientX, clientY) {
+  if (postEditorState.fileType !== "image") return;
 
-  if(postEditorState.fileType !== "image") return
-
-  postEditorState.dragging = true
-
-  postEditorState.dragStartX = clientX
-  postEditorState.dragStartY = clientY
-
+  postEditorState.dragging = true;
+  postEditorState.dragStartX = clientX;
+  postEditorState.dragStartY = clientY;
 }
 
 function moveImageDrag(clientX, clientY) {
+  if (!postEditorState.dragging) return;
 
-  if(!postEditorState.dragging) return
+  const dx = clientX - postEditorState.dragStartX;
+  const dy = clientY - postEditorState.dragStartY;
 
-  const dx = clientX - postEditorState.dragStartX
-  const dy = clientY - postEditorState.dragStartY
+  postEditorState.dragStartX = clientX;
+  postEditorState.dragStartY = clientY;
 
-  postEditorState.dragStartX = clientX
-  postEditorState.dragStartY = clientY
+  postEditorState.x += dx;
+  postEditorState.y += dy;
 
-  postEditorState.x += dx
-  postEditorState.y += dy
-
-  updateImageTransform()
-
+  updateImageTransform();
 }
 
 function endImageDrag() {
   postEditorState.dragging = false;
 }
 
-async function createCroppedImageBlob(){
-
-const viewport = document.getElementById("editorViewport")
-
-const canvas = document.createElement("canvas")
-
-const outputWidth = 1280
-const outputHeight = 720   // 16:9
-
-canvas.width = outputWidth
-canvas.height = outputHeight
-
-const ctx = canvas.getContext("2d")
-
-const image = document.getElementById("editorImage")
-
-const viewportWidth = viewport.clientWidth
-const viewportHeight = viewport.clientHeight
-
-const scaledWidth =
-postEditorState.imageNaturalWidth * postEditorState.scale
-
-const scaledHeight =
-postEditorState.imageNaturalHeight * postEditorState.scale
-
-const left =
-(viewportWidth - scaledWidth)/2 + postEditorState.x
-
-const top =
-(viewportHeight - scaledHeight)/2 + postEditorState.y
-
-const ratioX = outputWidth / viewportWidth
-const ratioY = outputHeight / viewportHeight
-
-ctx.drawImage(
-image,
-left * ratioX,
-top * ratioY,
-scaledWidth * ratioX,
-scaledHeight * ratioY
-)
-
-return new Promise(resolve=>{
-canvas.toBlob(resolve,"image/jpeg",0.9)
-})
-
-}
-
-async function compressRegularImage(file) {
-  const bitmap = await createImageBitmap(file);
-
-  const maxWidth = 1080;
-  const maxHeight = 1350;
-
-  let width = bitmap.width;
-  let height = bitmap.height;
-
-  const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
-
-  width = Math.round(width * ratio);
-  height = Math.round(height * ratio);
+async function createCroppedImageBlob() {
+  const viewport = document.getElementById("editorViewport");
 
   const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
+
+  const outputWidth = 1280;
+  const outputHeight = 720;
+
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
 
   const ctx = canvas.getContext("2d");
-  ctx.drawImage(bitmap, 0, 0, width, height);
+  const image = document.getElementById("editorImage");
+
+  const viewportWidth = viewport.clientWidth;
+  const viewportHeight = viewport.clientHeight;
+
+  const scaledWidth = postEditorState.imageNaturalWidth * postEditorState.scale;
+  const scaledHeight = postEditorState.imageNaturalHeight * postEditorState.scale;
+
+  const left = (viewportWidth - scaledWidth) / 2 + postEditorState.x;
+  const top = (viewportHeight - scaledHeight) / 2 + postEditorState.y;
+
+  const ratioX = outputWidth / viewportWidth;
+  const ratioY = outputHeight / viewportHeight;
+
+  ctx.drawImage(
+    image,
+    left * ratioX,
+    top * ratioY,
+    scaledWidth * ratioX,
+    scaledHeight * ratioY
+  );
 
   return new Promise((resolve) => {
-    canvas.toBlob(
-      (blob) => resolve(blob),
-      "image/jpeg",
-      0.88
-    );
+    canvas.toBlob(resolve, "image/jpeg", 0.9);
   });
 }
 
@@ -380,9 +343,9 @@ async function publishPost() {
 
   const formData = new FormData();
   formData.append("content", text);
-  // 👉 если редактирование и файл не меняли
+
   if (editId && !postEditorState.file) {
-  formData.append("keepMedia", "true");
+    formData.append("keepMedia", "true");
   }
 
   if (postEditorState.file) {
@@ -394,7 +357,7 @@ async function publishPost() {
     }
   }
 
-  if (progressWrap) progressWrap.classList.remove("hidden");
+  if (progressWrap) progressWrap.classList.remove("profile-hidden");
   if (progressBar) progressBar.style.width = "0%";
   if (publishBtn) publishBtn.disabled = true;
 
@@ -413,22 +376,20 @@ async function publishPost() {
     if (publishBtn) publishBtn.disabled = false;
 
     if (xhr.status >= 200 && xhr.status < 300) {
-
-    
-
-    closePostModal();
-    loadPosts();
-    return;
-  }
+      closePostModal();
+      loadPosts();
+      return;
+    }
 
     alert("Ошибка публикации");
   };
 
   if (editId) {
-  xhr.open("POST", "/update-post/" + editId); // 🔥 вместо PUT
-} else {
-  xhr.open("POST", "/create-post");
-}
+    xhr.open("POST", "/update-post/" + editId);
+  } else {
+    xhr.open("POST", "/create-post");
+  }
+
   xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("token"));
   xhr.send(formData);
 }
@@ -440,6 +401,8 @@ function initPostEditor() {
   const dropzone = document.getElementById("editorDropzone");
 
   if (!mediaInput || !zoom || !viewport || !dropzone) return;
+  if (dropzone.dataset.editorInitialized === "true") return;
+  dropzone.dataset.editorInitialized = "true";
 
   mediaInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
@@ -447,20 +410,17 @@ function initPostEditor() {
   });
 
   zoom.addEventListener("input", () => {
+    const oldScale = postEditorState.scale;
+    const newScale = Number(zoom.value);
 
-  const oldScale = postEditorState.scale
-  const newScale = Number(zoom.value)
+    const ratio = newScale / oldScale;
 
-  const ratio = newScale / oldScale
+    postEditorState.x = postEditorState.x * ratio;
+    postEditorState.y = postEditorState.y * ratio;
+    postEditorState.scale = newScale;
 
-  postEditorState.x = postEditorState.x * ratio
-  postEditorState.y = postEditorState.y * ratio
-
-  postEditorState.scale = newScale
-
-  updateImageTransform()
-
-})
+    updateImageTransform();
+  });
 
   viewport.addEventListener("mousedown", (e) => {
     startImageDrag(e.clientX, e.clientY);
@@ -512,43 +472,15 @@ function initPostEditor() {
       updateImageTransform();
     }
   });
-}
-
-window.openPostModal = openPostModal;
-window.closePostModal = closePostModal;
-window.publishPost = publishPost;
-window.selectMedia = selectMedia;
-window.removeMedia = removeMedia;
-
-function openCreatePostModal() {
-  const modal = document.getElementById("postModal");
-  if (!modal) return;
-
-  // ❗ убираем режим редактирования
-  delete modal.dataset.editId;
-
-  // ❗ сбрасываем всё
-  resetPostEditor();
-
-  // ❗ меняем заголовок обратно
-  const title = document.querySelector(".post-modal-title");
-  if (title) {
-    title.innerText = "Создать публикацию";
-  }
-
-  modal.style.display = "flex";
-}
-
-window.openCreatePostModal = openCreatePostModal;
-
-document.addEventListener("DOMContentLoaded", () => {
 
   const usernameTagInput = document.getElementById("editUsernameTag");
   const statusEl = document.getElementById("usernameTagStatus");
 
   let debounce;
 
-  if (usernameTagInput) {
+  if (usernameTagInput && statusEl && !usernameTagInput.dataset.tagEditorInitialized) {
+    usernameTagInput.dataset.tagEditorInitialized = "true";
+
     usernameTagInput.addEventListener("input", () => {
       let value = usernameTagInput.value;
 
@@ -559,7 +491,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (value.length < 4) {
         statusEl.innerText = "Минимум 4 символа";
-        statusEl.className = "input-status error";
+        statusEl.className = "profile-input-status error";
         return;
       }
 
@@ -569,18 +501,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (data.available) {
           statusEl.innerText = "Свободно ✅";
-          statusEl.className = "input-status ok";
+          statusEl.className = "profile-input-status ok";
         } else {
           statusEl.innerText = "Занято ❌";
-          statusEl.className = "input-status error";
+          statusEl.className = "profile-input-status error";
         }
       }, 400);
     });
   }
-
-});
-
-
+}
 
 function fillProfileEditor(user) {
   const usernameInput = document.getElementById("editUsernameTag");
@@ -589,3 +518,27 @@ function fillProfileEditor(user) {
     usernameInput.value = user.username_tag || "";
   }
 }
+
+function openCreatePostModal() {
+  const modal = document.getElementById("postModal");
+  if (!modal) return;
+
+  delete modal.dataset.editId;
+  resetPostEditor();
+
+  const title = document.querySelector(".profile-post-modal-title");
+  if (title) {
+    title.innerText = "Создать публикацию";
+  }
+
+  modal.style.display = "flex";
+}
+
+window.openPostModal = openPostModal;
+window.closePostModal = closePostModal;
+window.publishPost = publishPost;
+window.selectMedia = selectMedia;
+window.removeMedia = removeMedia;
+window.openCreatePostModal = openCreatePostModal;
+window.initPostEditor = initPostEditor;
+window.fillProfileEditor = fillProfileEditor;

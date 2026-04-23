@@ -1,93 +1,111 @@
-function isMyProfile(){
+async function isMyProfileAsync() {
   const params = new URLSearchParams(window.location.search);
-  const profileId = params.get("id");
+  const tag = window.__profileTag || params.get("tag");
 
   const token = localStorage.getItem("token");
   if (!token) return false;
 
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const myId = String(payload.id);
+    const res = await fetch("/me", {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    });
 
-    // если нет id — это точно мой профиль
-    if (!profileId) return true;
+    if (!res.ok) return false;
 
-    return String(profileId) === myId;
+    const me = await res.json();
 
+    if (!tag) return true;
+
+    return tag.toLowerCase() === (me.username_tag || "").toLowerCase();
   } catch {
     return false;
   }
 }
 
-function getMyIdFromToken(){
-  const token = localStorage.getItem("token");
-  if(!token) return null;
+async function handleProfileUI() {
+  const params = new URLSearchParams(window.location.search);
+  const tag = window.__profileTag || params.get("tag");
 
-  try{
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return String(payload.id);
-  }catch{
-    return null;
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const res = await fetch("/me", {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    });
+
+    if (!res.ok) return;
+
+    const me = await res.json();
+
+    const isMy =
+      !tag || tag.toLowerCase() === (me.username_tag || "").toLowerCase();
+
+    const actions = document.querySelector(".profile-page-actions");
+    const editBtn = document.getElementById("editProfileBtn");
+    const settingsBtn = document.getElementById("settingsBtn");
+    const followBtn = document.getElementById("followBtn");
+    const editUsernameBtn = document.querySelector(".profile-edit-username-btn");
+
+    if (!isMy) {
+      document.body.classList.add("foreign-profile");
+
+      if (actions) actions.style.setProperty("display", "flex", "important");
+
+      if (editBtn) editBtn.style.setProperty("display", "none", "important");
+      if (settingsBtn) settingsBtn.style.setProperty("display", "none", "important");
+      if (editUsernameBtn) {
+        editUsernameBtn.style.setProperty("display", "none", "important");
+      }
+
+      if (followBtn) {
+        followBtn.style.setProperty("display", "inline-flex", "important");
+        followBtn.style.setProperty("visibility", "visible", "important");
+        followBtn.style.setProperty("opacity", "1", "important");
+      }
+    } else {
+      document.body.classList.remove("foreign-profile");
+
+      if (actions) actions.style.removeProperty("display");
+
+      if (editBtn) editBtn.style.removeProperty("display");
+      if (settingsBtn) settingsBtn.style.removeProperty("display");
+      if (editUsernameBtn) editUsernameBtn.style.removeProperty("display");
+
+      if (followBtn) {
+        followBtn.style.setProperty("display", "none", "important");
+      }
+    }
+  } catch (err) {
+    console.error("me error", err);
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-
-  setTimeout(() => {
-    if (!isMyProfile()) {
-      document.querySelectorAll(".avatar-upload")
-  .forEach(el => el.remove());
-    }
-  }, 200);
-
-  const params = new URLSearchParams(window.location.search);
-  const profileId = params.get("id");
-const myId = getMyIdFromToken();
-
-if (profileId && profileId != myId) {
-  document.body.classList.add("foreign-profile");
-}
-
-  if (!profileId && !localStorage.getItem("token")) {
-    window.location.href = "/html/login.html";
+async function initProfilePageFull() {
+  if (!localStorage.getItem("token")) {
+    navigate("/login");
     return;
   }
 
-  handleProfileUI();
-  initProfileUser();
-  initAvatarCrop();
-  initCropControls();
-  initPosts();
-  initPostEditor();
-  initTabs();
-  switchTab("posts");
-  initSettings();
-  initTrackModal();
-  initTracks();
-  initTrackTags();
-});
+  await handleProfileUI();
+  await initProfileUser();
 
-function handleProfileUI() {
-
-  const params = new URLSearchParams(window.location.search);
-  const profileId = params.get("id");
-  const myId = getMyIdFromToken();
-
-  const avatarEdit = document.querySelector(".avatar-edit-btn");
-  const createPostBtn = document.querySelector(".create-post-btn");
-  const createTrackBtn = document.querySelector("#tracksTab .secondary-btn");
-
-  const editBtn = document.querySelector(".profile-actions .main-btn");
-  const settingsBtn = document.querySelector(".profile-actions .secondary-btn");
-
-  // если это чужой профиль
-  if (profileId && profileId != myId) {
-
-    if (avatarEdit) avatarEdit.style.display = "none";
-    if (createPostBtn) createPostBtn.style.display = "none";
-    if (createTrackBtn) createTrackBtn.style.display = "none";
-    if (editBtn) editBtn.style.display = "none";
-    if (settingsBtn) settingsBtn.style.display = "none";
-
-  }
+  if (typeof initAvatarCrop === "function") initAvatarCrop();
+  if (typeof initCropControls === "function") initCropControls();
+  if (typeof initPostEditor === "function") initPostEditor();
+  if (typeof initTabs === "function") initTabs();
+  if (typeof switchTab === "function") switchTab("posts");
+  if (typeof initSettings === "function") initSettings();
+  if (typeof initTrackModal === "function") initTrackModal();
+  if (typeof initTrackTags === "function") initTrackTags();
+  if (typeof initPosts === "function") initPosts();
+  if (typeof initTracks === "function") initTracks();
 }
+
+window.handleProfileUI = handleProfileUI;
+window.initProfilePageFull = initProfilePageFull;
+window.isMyProfileAsync = isMyProfileAsync;

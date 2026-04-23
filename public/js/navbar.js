@@ -1,5 +1,8 @@
 console.log("NAVBAR JS LOADED");
 
+let navbarQueueInterval = null;
+let navbarInitialized = false;
+
 async function loadNavbar() {
   const container = document.getElementById("navbar");
   if (!container) return;
@@ -10,35 +13,35 @@ async function loadNavbar() {
 
     container.innerHTML = html;
 
-const path = window.location.pathname;
-const isAuthPage = path.includes("login") || path.includes("register");
+    const path = window.location.pathname;
+    const isAuthPage = path.includes("login") || path.includes("register");
 
-if (isAuthPage) {
-  // 🔥 ждём пока navbar точно появится
-  requestAnimationFrame(() => {
-    const navbar = document.querySelector(".navbar");
+    if (isAuthPage) {
+      requestAnimationFrame(() => {
+        const navbar = document.querySelector(".navbar");
+        if (navbar) {
+          navbar.classList.add("auth-navbar");
+        }
 
-    if (navbar) {
-      navbar.classList.add("auth-navbar");
+        const search = document.querySelector(".navbar-search");
+        search?.classList.add("navbar-hidden");
+      });
     }
-  });
-}
-
-if (!isAuthPage) {
-  initSearch();
-} else {
-  // скрываем поиск
-  const search = document.querySelector(".nav-search");
-  search?.classList.add("hidden");
-}
 
     await loadNavbarUser();
     initDropdown();
+    initSearch();
+    highlightActivePage();
+
+    if (navbarQueueInterval) {
+      clearInterval(navbarQueueInterval);
+    }
+
+    await loadQueueStatus();
+    navbarQueueInterval = setInterval(loadQueueStatus, 5000);
   } catch (err) {
     console.error("Navbar load error:", err);
   }
-  loadQueueStatus(); // 🔥 ВАЖНО
-setInterval(loadQueueStatus, 5000);
 }
 
 async function loadNavbarUser() {
@@ -47,12 +50,18 @@ async function loadNavbarUser() {
   const navGuest = document.getElementById("navGuest");
   const navUser = document.getElementById("navUser");
   const navAvatar = document.getElementById("navAvatar");
+  const adminPanelBtn = document.getElementById("adminPanelBtn");
+  const navDropdown = document.getElementById("navDropdown");
 
   if (!navGuest || !navUser || !navAvatar) return;
 
+  adminPanelBtn?.classList.add("navbar-hidden");
+  navDropdown?.classList.remove("active");
+
   if (!token) {
-    navGuest.classList.remove("hidden");
-    navUser.classList.add("hidden");
+    navGuest.classList.remove("navbar-hidden");
+    navUser.classList.add("navbar-hidden");
+    window.currentUser = null;
     return;
   }
 
@@ -66,37 +75,44 @@ async function loadNavbarUser() {
     if (!res.ok) throw new Error("Unauthorized");
 
     const user = await res.json();
-    console.log("USER:", user);
-    if(user.role === "admin"){
-  document.getElementById("adminPanelBtn")?.classList.remove("hidden")
-}
+    window.currentUser = user;
 
-    if (user.avatar) {
-  navAvatar.src = user.avatar + "?t=" + Date.now();
-} else {
-  navAvatar.src = "/images/default-avatar.jpg";
-}
+    navAvatar.src = user.avatar
+      ? `${user.avatar}?t=${Date.now()}`
+      : "/images/default-avatar.jpg";
 
-    navGuest.classList.add("hidden");
-    navUser.classList.remove("hidden");
+    navGuest.classList.add("navbar-hidden");
+    navUser.classList.remove("navbar-hidden");
+
+    if (user.role === "admin") {
+      adminPanelBtn?.classList.remove("navbar-hidden");
+    }
   } catch (err) {
     console.error("Navbar user error:", err);
 
-    navGuest.classList.remove("hidden");
-    navUser.classList.add("hidden");
+    navGuest.classList.remove("navbar-hidden");
+    navUser.classList.add("navbar-hidden");
+    adminPanelBtn?.classList.add("navbar-hidden");
+    window.currentUser = null;
   }
 }
 
-// 🔥 dropdown логика
 function initDropdown() {
   const btn = document.getElementById("navUserBtn");
   const dropdown = document.getElementById("navDropdown");
 
   if (!btn || !dropdown) return;
 
+  if (btn.dataset.dropdownInitialized === "true") return;
+  btn.dataset.dropdownInitialized = "true";
+
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
     dropdown.classList.toggle("active");
+  });
+
+  dropdown.addEventListener("click", (e) => {
+    e.stopPropagation();
   });
 
   document.addEventListener("click", () => {
@@ -104,269 +120,138 @@ function initDropdown() {
   });
 }
 
-// переходы
-function goToProfile() {
-  window.location.href = "/html/profile.html";
+async function goToProfile(e) {
+  if (e) e.stopPropagation();
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    navigate("/login");
+    return;
+  }
+
+  try {
+    const res = await fetch("/me", {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    });
+
+    if (!res.ok) throw new Error("Unauthorized");
+
+    const user = await res.json();
+    const tag = user.username_tag;
+
+    if (tag) {
+      navigate(`/${tag}`);
+    } else {
+      navigate("/profile");
+    }
+  } catch (err) {
+    console.error("goToProfile error", err);
+    navigate("/profile");
+  }
 }
 
-function goToSettings() {
-  window.location.href = "/html/settings.html";
+function goToSettings(e) {
+  if (e) e.stopPropagation();
+  navigate("/settings");
 }
 
-function logout() {
+async function logout(e) {
+  if (e) e.stopPropagation();
   localStorage.removeItem("token");
-  window.location.href = "/html/index.html";
+  window.currentUser = null;
+  await loadNavbarUser();
+  navigate("/");
+}
+
+function goToAdmin(e) {
+  if (e) e.stopPropagation();
+  if (window.currentUser?.role !== "admin") return;
+  navigate("/admin");
 }
 
 window.goToProfile = goToProfile;
 window.goToSettings = goToSettings;
 window.logout = logout;
+window.goToAdmin = goToAdmin;
 
-// запуск
-loadNavbar();
-function initSearch(){
-  const path = window.location.pathname;
-const isAuthPage = path.includes("login") || path.includes("register");
+function initSearch() {
+  const input = document.getElementById("globalSearch");
+  const results = document.getElementById("searchResults");
 
+  if (!input || !results) return;
+  if (input.dataset.searchInitialized === "true") return;
+  input.dataset.searchInitialized = "true";
 
-  const input = document.getElementById("globalSearch")
-  const results = document.getElementById("searchResults")
-
-  if(!input || !results) return
-
-  let timeout
+  let timeout;
 
   input.addEventListener("input", () => {
+    clearTimeout(timeout);
 
-    clearTimeout(timeout)
+    const q = input.value.trim();
 
-    const q = input.value.trim()
-
-    if(!q){
-      results.style.display = "none"
-      return
-    }
-
-    timeout = setTimeout(async () => {
-
-      const res = await fetch(`/search?q=${encodeURIComponent(q)}`)
-      const data = await res.json()
-
-      const items = []
-
-      // users
-      data.users.forEach(u=>{
-  items.push(`
-    <div class="search-item user-item" onclick="goToUserProfile(${u.id})">
-      
-      <img class="search-avatar" src="${u.avatar || '/images/default-avatar.jpg'}">
-
-      <div class="search-info">
-        <div class="search-name">${u.username || "No name"}</div>
-        <div class="search-tag">@${u.username_tag || ""}</div>
-      </div>
-
-    </div>
-  `)
-})
-
-      // tracks
-      data.tracks.forEach(t=>{
-  items.push(`
-  <div class="search-item track-item">
-
-    <div class="track-cover-wrap">
-      <img
-        class="track-cover-img"
-        src="${t.cover || '/images/default-avatar.jpg'}"
-        alt="cover"
-      >
-
-      <button
-        type="button"
-        class="track-play"
-        onclick="event.stopPropagation(); playPreview(this, '${t.audio || ""}', '${t.soundcloud || ""}')"
-      >
-        <span class="track-play-circle">
-          <span class="play-icon"></span>
-          <span class="pause-icon">
-            <span></span>
-            <span></span>
-          </span>
-        </span>
-      </button>
-    </div>
-
-    <div class="search-info">
-      <div class="search-name">${t.title}</div>
-      <div class="search-tag">${t.artist || "Unknown"}</div>
-    </div>
-
-  </div>
-`)
-})
-
-      if(items.length === 0){
-        results.innerHTML = `<div class="search-item">Ничего не найдено</div>`
-      }else{
-        results.innerHTML = items.join("")
-      }
-
-      results.style.display = "block"
-
-    }, 300)
-
-  })
-
-  document.addEventListener("click", (e)=>{
-    if(!e.target.closest(".nav-search")){
-      results.style.display = "none"
-    }
-  })
-
-}
-
-function goToUserProfile(id){
-  window.location.href = `/html/profile.html?id=${id}`
-}
-
-let currentAudio = null;
-let currentButton = null;
-let scWidget = null;
-
-function resetPlayButtons() {
-  document.querySelectorAll(".track-play").forEach(btn => {
-    btn.classList.remove("active");
-  });
-}
-
-function stopCurrentPlayback() {
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
-    currentAudio = null;
-  }
-
-  if (scWidget) {
-    try {
-      scWidget.pause();
-    } catch (e) {}
-  }
-
-  resetPlayButtons();
-  currentButton = null;
-}
-
-function playPreview(button, audio, soundcloud) {
-  if (!button) return;
-
-  const clickedSameButton =
-    currentButton === button && button.classList.contains("active");
-
-  if (clickedSameButton) {
-    if (window.stopGlobalTrack) {
-      window.stopGlobalTrack();
-    } else {
-      stopCurrentPlayback();
-    }
-    return;
-  }
-
-  document.querySelectorAll(".track-play").forEach(b => {
-    if (b !== button) b.classList.remove("active");
-  });
-
-  const trackItem = button.closest(".track-item");
-  const title =
-    trackItem?.querySelector(".search-name")?.textContent?.trim() || "Unknown track";
-  const artist =
-    trackItem?.querySelector(".search-tag")?.textContent?.trim() || "Unknown artist";
-  const cover =
-    trackItem?.querySelector(".track-cover-img")?.src ||
-    trackItem?.querySelector(".track-cover-wrap img")?.src ||
-    "/images/default-avatar.jpg";
-
-  const fullSrc = audio
-    ? (audio.startsWith("http") ? audio : window.location.origin + audio)
-    : "";
-
-  if (window.playTrackGlobal) {
-    window.playTrackGlobal({
-      title,
-      artist,
-      cover,
-      audioSrc: fullSrc,
-      soundcloud
-    });
-
-    button.classList.add("active");
-    currentButton = button;
-    return;
-  }
-
-  stopCurrentPlayback();
-
-  if (audio) {
-    currentAudio = new Audio(fullSrc);
-
-    currentAudio.play().then(() => {
-      button.classList.add("active");
-      currentButton = button;
-    }).catch(err => {
-      console.log("Audio play error:", err);
-    });
-
-    currentAudio.onended = () => {
-      stopCurrentPlayback();
-    };
-
-    return;
-  }
-
-  if (soundcloud) {
-    if (typeof SC === "undefined" || !SC.Widget) {
-      window.open(soundcloud, "_blank");
+    if (!q) {
+      results.classList.remove("active");
+      results.innerHTML = "";
       return;
     }
 
-    let container = document.getElementById("sc-player");
+    timeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
 
-    if (!container) {
-      container = document.createElement("div");
-      container.id = "sc-player";
-      container.style.display = "none";
-      document.body.appendChild(container);
+        if (!res.ok) {
+          console.error("Search error:", res.status);
+          return;
+        }
+
+        const data = await res.json();
+        results.innerHTML = "";
+
+        const items = [];
+
+        (data.users || []).forEach((u) => {
+          items.push(`
+            <div class="navbar-search-item" onclick="goToUserProfile('${u.username_tag}')">
+              <img
+                class="navbar-search-avatar"
+                src="${u.avatar || "/images/default-avatar.jpg"}"
+                alt="${u.username || "User"}"
+              >
+              <div class="navbar-search-info">
+                <div class="navbar-search-name">${u.username || "No name"}</div>
+                <div class="navbar-search-tag">@${u.username_tag || ""}</div>
+              </div>
+            </div>
+          `);
+        });
+
+        if (items.length === 0) {
+          results.innerHTML = `<div class="navbar-search-item">Ничего не найдено</div>`;
+        } else {
+          results.innerHTML = items.join("");
+        }
+
+        results.classList.add("active");
+      } catch (err) {
+        console.error("Search fetch error:", err);
+      }
+    }, 300);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".navbar-search")) {
+      results.classList.remove("active");
     }
-
-    container.innerHTML = `
-      <iframe id="sc-frame"
-        width="0"
-        height="0"
-        allow="autoplay"
-        frameborder="no"
-        src="https://w.soundcloud.com/player/?url=${encodeURIComponent(soundcloud)}&auto_play=true">
-      </iframe>
-    `;
-
-    const iframe = document.getElementById("sc-frame");
-    scWidget = SC.Widget(iframe);
-
-    scWidget.bind(SC.Widget.Events.READY, () => {
-      scWidget.play();
-      button.classList.add("active");
-      currentButton = button;
-    });
-
-    scWidget.bind(SC.Widget.Events.FINISH, () => {
-      stopCurrentPlayback();
-    });
-  }
+  });
 }
 
-function goToAdmin(){
-  window.location.href = "/html/admin.html"
+function goToUserProfile(tag) {
+  navigate(`/${tag}`);
 }
-window.goToAdmin = goToAdmin
+
+window.goToUserProfile = goToUserProfile;
 
 async function loadQueueStatus() {
   try {
@@ -379,12 +264,56 @@ async function loadQueueStatus() {
     dot.classList.remove("active", "closed");
 
     if (data.state === "open") {
-      dot.classList.add("active"); // 🟢
+      dot.classList.add("active");
     } else {
-      dot.classList.add("closed"); // 🔴 paused или closed
+      dot.classList.add("closed");
     }
-
   } catch (err) {
     console.error("Queue status error:", err);
   }
 }
+
+function highlightActivePage() {
+  const path = window.location.pathname;
+
+  let page = "";
+
+  if (path === "/" || path.includes("index")) page = "index";
+  else if (path.includes("playlists")) page = "playlists";
+  else if (path.includes("submit")) page = "submit";
+  else if (path.includes("queue")) page = "queue";
+  else if (path.includes("discover")) page = "discover";
+
+  const nav = document.querySelector(".navbar-links");
+  if (!nav) return;
+
+  const links = nav.querySelectorAll("a");
+  const indicator = nav.querySelector(".navbar-indicator");
+  if (!indicator) return;
+
+  links.forEach((link) => link.classList.remove("active-link"));
+
+  const activeLink = Array.from(links).find((link) => link.dataset.page === page);
+
+  if (!activeLink) {
+    indicator.style.width = "0px";
+    return;
+  }
+
+  activeLink.classList.add("active-link");
+
+  const rect = activeLink.getBoundingClientRect();
+  const navRect = nav.getBoundingClientRect();
+
+  indicator.style.width = rect.width + "px";
+  indicator.style.left = (rect.left - navRect.left) + "px";
+}
+
+if (!navbarInitialized) {
+  navbarInitialized = true;
+  loadNavbar();
+}
+
+window.highlightActivePage = highlightActivePage;
+window.loadNavbar = loadNavbar;
+window.loadNavbarUser = loadNavbarUser;

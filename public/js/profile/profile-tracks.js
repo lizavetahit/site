@@ -1,176 +1,1090 @@
+window.currentUser = window.currentUser || {};
 
-let currentUser = {}
+let currentTags = [];
 
-async function initTracks(){
-  await loadCurrentUser()
-  loadTracks()
+let trackListenState = {
+  trackId: null,
+  sessionId: 0,
+  counted: false,
+  threshold: 0,
+  audioBound: false,
+  listenedSeconds: 0,
+  lastTime: 0,
+  seekBlocked: false,
+  wasPlaying: false,
+  pendingRequest: false
+};
+
+let profileTrackUiEventsBound = false;
+
+function resetTrackListenState(trackId = null, currentTime = 0) {
+  trackListenState.trackId = trackId;
+  trackListenState.sessionId = 0;
+  trackListenState.counted = false;
+  trackListenState.threshold = 0;
+  trackListenState.listenedSeconds = 0;
+  trackListenState.lastTime = currentTime;
+  trackListenState.seekBlocked = false;
+  trackListenState.wasPlaying = false;
+  trackListenState.pendingRequest = false;
 }
-async function loadCurrentUser(){
 
-  try{
+function beginTrackListenSession(trackId, audio) {
+  trackListenState.trackId = trackId;
+  trackListenState.sessionId += 1;
+  trackListenState.counted = false;
+  trackListenState.listenedSeconds = 0;
+  trackListenState.lastTime = audio?.currentTime || 0;
+  trackListenState.seekBlocked = false;
+  trackListenState.wasPlaying = !!audio && !audio.paused;
+  trackListenState.pendingRequest = false;
 
+  if (audio?.duration && isFinite(audio.duration)) {
+    trackListenState.threshold = Math.min(30, audio.duration * 0.5);
+  } else {
+    trackListenState.threshold = 0;
+  }
+}
+
+async function initTracks() {
+  const container = document.getElementById("tracksContainer");
+  if (!container) return;
+
+  if (container.dataset.tracksInitialized === "true") return;
+  container.dataset.tracksInitialized = "true";
+
+  await loadCurrentUserForTracks();
+  setupGlobalTrackListenWatcher();
+  bindProfileTrackUiEvents();
+
+  await loadTracks();
+}
+
+async function loadCurrentUserForTracks() {
+  try {
     const res = await fetch("/me", {
-      headers:{
-        Authorization:"Bearer "+localStorage.getItem("token")
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
       }
-    })
+    });
 
-    const data = await res.json()
+    if (!res.ok) return;
+    window.currentUser = await res.json();
+  } catch (err) {
+    console.error("loadCurrentUserForTracks error", err);
+  }
+}
 
-    currentUser = data
+function formatTime(sec) {
+  if (!sec || isNaN(sec)) return "0:00";
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s < 10 ? "0" : ""}${s}`;
+}
 
-  }catch(err){
-    console.error("user load error", err)
+function bindProfileTrackUiEvents() {
+  if (profileTrackUiEventsBound) return;
+  profileTrackUiEventsBound = true;
+
+  window.addEventListener("ritmoria:global-player-timeupdate", () => {
+    syncProfileTrackCardsWithGlobalPlayer();
+  });
+
+  window.addEventListener("ritmoria:global-player-play", () => {
+    syncProfileTrackCardsWithGlobalPlayer();
+  });
+
+  window.addEventListener("ritmoria:global-player-pause", () => {
+    syncProfileTrackCardsWithGlobalPlayer();
+  });
+
+  window.addEventListener("ritmoria:global-player-track-change", () => {
+    setTimeout(() => {
+      syncProfileTrackCardsWithGlobalPlayer();
+    }, 50);
+  });
+
+  window.addEventListener("ritmoria:global-player-stopped", () => {
+    syncProfileTrackCardsWithGlobalPlayer();
+  });
+
+  window.addEventListener("ritmoria:track-like-updated", async (e) => {
+    const trackId = Number(e.detail?.trackId);
+    if (!trackId) return;
+
+    await refreshTrackLikeButton(trackId);
+  });
+}
+
+function applyLikeState(btn, data) {
+  if (!btn) return;
+
+  const icon = btn.querySelector("i");
+  const countEl = btn.querySelector(".like-count");
+  const count = Number(data?.count) || 0;
+  const liked = !!data?.liked;
+
+  btn.classList.toggle("liked", liked);
+
+  if (icon) {
+    icon.classList.toggle("fa-solid", liked);
+    icon.classList.toggle("fa-regular", !liked);
   }
 
+  if (countEl) {
+    countEl.innerText = String(count);
+  }
 }
 
-async function loadTracks(){
+async function fetchTrackLikeState(trackId) {
+  if (!trackId) return null;
 
-  const params = new URLSearchParams(window.location.search);
-  const profileId = params.get("id");
+  try {
+    const token = localStorage.getItem("token");
+    const headers = token ? { Authorization: "Bearer " + token } : {};
+    const res = await fetch(`/api/track-likes/${trackId}`, { headers });
 
-  let url = "/user-tracks";
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.error("fetchTrackLikeState error", err);
+    return null;
+  }
+}
 
-  if(profileId){
-    url += "?id=" + profileId;
+async function refreshTrackLikeButton(trackId, providedBtn = null) {
+  const btn = providedBtn || document.querySelector(`.like-btn[data-id="${trackId}"]`);
+  if (!btn) return null;
+
+  const data = await fetchTrackLikeState(trackId);
+  if (!data) return null;
+
+  applyLikeState(btn, data);
+  return data;
+}
+
+async function preloadTrackDurations(tracks) {
+  if (!Array.isArray(tracks)) return;
+
+  await Promise.all(
+    tracks.map((track) => {
+      return new Promise((resolve) => {
+        if (!track?.audio) {
+          track._duration = 0;
+          resolve();
+          return;
+        }
+
+        const audio = new Audio();
+        audio.preload = "metadata";
+
+        audio.src = track.audio.startsWith("http")
+          ? track.audio
+          : "/" + track.audio.replace(/^\/+/, "");
+
+        audio.addEventListener("loadedmetadata", () => {
+          track._duration = isFinite(audio.duration) ? audio.duration : 0;
+          resolve();
+        }, { once: true });
+
+        audio.addEventListener("error", () => {
+          track._duration = 0;
+          resolve();
+        }, { once: true });
+      });
+    })
+  );
+}
+
+function renderTrack(track) {
+  const cover = track.cover
+    ? (track.cover.startsWith("http") ? track.cover : "/" + track.cover.replace(/^\/+/, ""))
+    : "/images/default-cover.jpg";
+
+  const isMy = window.currentUser?.id === track.user_id;
+
+  return `
+    <div class="track-card" id="track-card-${track.id}" data-track-id="${track.id}">
+      <div class="track-cover-wrap">
+        <img
+          src="${cover}"
+          class="track-cover"
+          onclick="goToTrack(event, ${track.id})"
+        >
+
+        <button
+          class="play-btn"
+          type="button"
+          onclick="playProfileTrack(event, ${track.id})"
+        >
+          <i class="fa-solid fa-play"></i>
+        </button>
+      </div>
+
+      <div class="track-main">
+        <div class="track-header">
+          <div class="track-texts">
+            <div class="track-title" onclick="goToTrack(event, ${track.id})">
+              ${track.title}
+            </div>
+
+            <div
+              class="track-artist"
+              onclick="goToTrackAuthorProfile(event, '${track.username_tag || ""}')"
+            >
+              ${track.artist || "Unknown"}
+            </div>
+          </div>
+
+          <div class="track-meta-right">
+            <div class="track-meta-info">
+              ${formatDate(track.created_at)}
+              ${track.genre ? `<span class="genre-chip">#${track.genre}</span>` : ""}
+            </div>
+
+            ${isMy ? `
+              <div class="track-menu">
+                <button class="dots-btn" type="button">
+                  <i class="fa-solid fa-ellipsis"></i>
+                </button>
+
+                <div class="dropdown profile-hidden">
+                  <div onclick="editTrack(${track.id})">
+                    <i class="fa-solid fa-pen"></i>
+                    <span>Редактировать</span>
+                  </div>
+
+                  <div onclick="pinTrack(${track.id})">
+                    <i class="fa-solid fa-thumbtack"></i>
+                    <span>Закрепить</span>
+                  </div>
+
+                  <div onclick="archiveTrack(${track.id})">
+                    <i class="fa-solid fa-box-archive"></i>
+                    <span>Архив</span>
+                  </div>
+
+                  <div onclick="deleteTrack(${track.id})" class="danger">
+                    <i class="fa-solid fa-trash"></i>
+                    <span>Удалить</span>
+                  </div>
+                </div>
+              </div>
+            ` : ""}
+          </div>
+        </div>
+
+        <div class="track-player">
+          <div class="progress-bar" onclick="seekTrack(event, ${track.id})">
+            <div class="progress-fill" id="progress-${track.id}"></div>
+          </div>
+
+          <div class="time-row">
+            <span id="current-${track.id}">0:00</span>
+            <span id="duration-${track.id}">
+  ${formatTime(track.duration || 0)}
+</span>
+          </div>
+        </div>
+
+        <div class="track-actions">
+          <button class="like-btn" data-id="${track.id}">
+            <i class="fa-regular fa-heart"></i>
+            <span class="like-count">0</span>
+          </button>
+
+          <button onclick="goToComments('${track.slug}', '${track.username_tag}')">
+            <i class="fa-regular fa-comment"></i>
+          </button>
+
+          <button onclick="copyTrackLink('${track.slug}', '${track.username_tag}')">
+            <i class="fa-solid fa-link"></i>
+          </button>
+
+          <div class="track-stat-item">
+            <i class="fa-solid fa-headphones"></i>
+            <span id="track-listens-${track.id}">${Number(track.listens_count) || 0}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadTracks() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const tag = window.__profileTag || params.get("tag");
+
+    let url = "/user-tracks";
+    if (tag) url += "?tag=" + encodeURIComponent(tag);
+
+    const res = await fetch(url, {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    });
+
+    if (!res.ok) {
+      console.error("loadTracks bad response", res.status);
+      return;
+    }
+
+    const tracks = await res.json();
+    window.currentTracks = tracks;
+
+    await preloadTrackDurations(tracks);
+
+    const container = document.getElementById("tracksContainer");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    tracks.forEach((track) => {
+      container.insertAdjacentHTML("beforeend", renderTrack(track));
+    });
+
+    document.querySelectorAll(".like-btn").forEach((btn) => {
+      const id = Number(btn.dataset.id);
+      refreshTrackLikeButton(id, btn);
+
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        toggleLike(btn, id);
+      };
+    });
+
+    syncProfileTrackCardsWithGlobalPlayer();
+  } catch (err) {
+    console.error("loadTracks error", err);
+  }
+}
+
+async function registerTrackListen(trackId) {
+  const token = localStorage.getItem("token");
+  if (!token) return false;
+
+  try {
+    const res = await fetch(`/api/user-tracks/${trackId}/listen`, {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    });
+
+    if (!res.ok) return false;
+
+    const data = await res.json();
+    const countEl = document.getElementById(`track-listens-${trackId}`);
+
+    if (countEl && typeof data.listens_count !== "undefined") {
+      countEl.innerText = Number(data.listens_count) || 0;
+    }
+
+    return true;
+  } catch (err) {
+    console.error("registerTrackListen error", err);
+    return false;
+  }
+}
+
+function setupGlobalTrackListenWatcher() {
+  if (trackListenState.audioBound) return;
+
+  const globalAudio = document.getElementById("global-audio");
+  if (!globalAudio) return;
+
+  trackListenState.audioBound = true;
+
+  globalAudio.addEventListener("play", () => {
+    trackListenState.wasPlaying = true;
+    trackListenState.lastTime = globalAudio.currentTime || 0;
+  });
+
+  globalAudio.addEventListener("pause", () => {
+    trackListenState.wasPlaying = false;
+  });
+
+  globalAudio.addEventListener("loadedmetadata", () => {
+    trackListenState.lastTime = globalAudio.currentTime || 0;
+
+    if (globalAudio.duration && isFinite(globalAudio.duration)) {
+      trackListenState.threshold = Math.min(30, globalAudio.duration * 0.5);
+    }
+  });
+
+  window.addEventListener("ritmoria:global-player-seek", (e) => {
+  if (!trackListenState.trackId) return;
+
+  const audio = document.getElementById("global-audio");
+  if (!audio) return;
+
+  const newTime = Number(e.detail?.currentTime || 0);
+
+  // 🔥 ВСЕГДА начинаем новую сессию при любом seek
+  beginTrackListenSession(trackListenState.trackId, audio);
+
+  trackListenState.lastTime = newTime;
+});
+
+  globalAudio.addEventListener("timeupdate", async () => {
+    if (!trackListenState.trackId) return;
+    if (trackListenState.counted) return;
+    if (trackListenState.pendingRequest) return;
+    if (!trackListenState.wasPlaying) return;
+    if (!globalAudio.duration || !isFinite(globalAudio.duration)) return;
+
+    if (!trackListenState.threshold || !isFinite(trackListenState.threshold)) {
+      trackListenState.threshold = Math.min(30, globalAudio.duration * 0.5);
+    }
+
+    const current = globalAudio.currentTime || 0;
+    const previous = trackListenState.lastTime || 0;
+    const delta = current - previous;
+
+    if (delta > 0 && delta <= 1.25 && !trackListenState.seekBlocked) {
+      trackListenState.listenedSeconds += delta;
+    }
+
+    trackListenState.lastTime = current;
+
+    if (
+      !trackListenState.seekBlocked &&
+      trackListenState.listenedSeconds >= trackListenState.threshold
+    ) {
+      const sessionAtRequest = trackListenState.sessionId;
+
+      trackListenState.counted = true;
+      trackListenState.pendingRequest = true;
+
+      const ok = await registerTrackListen(trackListenState.trackId);
+
+      if (sessionAtRequest === trackListenState.sessionId) {
+        trackListenState.pendingRequest = false;
+
+        if (!ok) {
+          trackListenState.counted = false;
+        }
+      }
+    }
+  });
+
+  globalAudio.addEventListener("ended", () => {
+    trackListenState.wasPlaying = false;
+    trackListenState.lastTime = globalAudio.duration || 0;
+  });
+
+  globalAudio.addEventListener("emptied", () => {
+    resetTrackListenState(null, 0);
+  });
+
+}
+
+function setTrackListenThreshold() {
+  const audio = document.getElementById("global-audio");
+  if (!audio) return;
+
+  const applyThreshold = () => {
+    if (!audio.duration || !isFinite(audio.duration)) return;
+    trackListenState.threshold = Math.min(30, audio.duration * 0.5);
+  };
+
+  if (audio.duration && isFinite(audio.duration)) {
+    applyThreshold();
+    return;
+  }
+
+  audio.addEventListener("loadedmetadata", applyThreshold, { once: true });
+}
+
+async function toggleLike(btn, trackId) {
+  try {
+    const res = await fetch("/api/track-like", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token")
+      },
+      body: JSON.stringify({ trackId })
+    });
+
+    if (!res.ok) return;
+
+    const toggled = await res.json();
+    const fresh = await refreshTrackLikeButton(trackId, btn);
+
+    window.dispatchEvent(
+      new CustomEvent("ritmoria:track-like-updated", {
+        detail: {
+          trackId,
+          liked: typeof fresh?.liked === "boolean" ? fresh.liked : !!toggled?.liked
+        }
+      })
+    );
+  } catch (err) {
+    console.error("toggleLike error", err);
+  }
+}
+
+function playProfileTrack(event, id) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const track = window.currentTracks.find((t) => t.id === id);
+  if (!track) return;
+
+  const nextAudioSrc = track.audio
+    ? (track.audio.startsWith("http") ? track.audio : "/" + track.audio.replace(/^\/+/, ""))
+    : "";
+
+  const state = window.getGlobalPlayerState?.();
+  const current = state?.track;
+  const globalAudio = document.getElementById("global-audio");
+
+  const isSameTrack =
+    current &&
+    (
+      (current.audioSrc && current.audioSrc === nextAudioSrc) ||
+      (current.soundcloud && current.soundcloud === (track.soundcloud || ""))
+    );
+
+  if (isSameTrack && globalAudio) {
+    const atBeginning = (globalAudio.currentTime || 0) <= 1;
+
+    // новую сессию создаём только если этот же трек реально начали заново с начала
+    if (atBeginning && (trackListenState.counted || trackListenState.seekBlocked)) {
+      beginTrackListenSession(id, globalAudio);
+    }
+
+    if (globalAudio.paused) {
+      globalAudio.play().catch(() => {});
+    } else {
+      globalAudio.pause();
+    }
+
+    return;
+  }
+
+    window.playTrackGlobal({
+    id: track.id,
+    title: track.title,
+    artist: track.artist,
+    cover: track.cover
+      ? (track.cover.startsWith("http") ? track.cover : "/" + track.cover.replace(/^\/+/, ""))
+      : "/images/default-cover.jpg",
+    audioSrc: nextAudioSrc,
+    soundcloud: track.soundcloud || "",
+    slug: track.slug || "",
+    username_tag: track.username_tag || ""
+  });
+
+  setupGlobalTrackListenWatcher();
+
+  setTimeout(() => {
+    const audio = document.getElementById("global-audio");
+
+    if (audio) {
+      beginTrackListenSession(id, audio);
+      setTrackListenThreshold();
+    }
+
+    syncProfileTrackCardsWithGlobalPlayer();
+  }, 50);
+}
+
+function syncProfileTrackCardsWithGlobalPlayer() {
+  const state = window.getGlobalPlayerState?.();
+  const current = state?.track;
+  const isPlaying = !!state?.isPlaying;
+  const currentTime = state?.currentTime || 0;
+  const duration = state?.duration || 0;
+
+  document.querySelectorAll(".track-card").forEach((card) => {
+  const playIcon = card.querySelector(".play-btn i");
+  const currentEl = card.querySelector('[id^="current-"]');
+  const durationEl = card.querySelector('[id^="duration-"]');
+  const fill = card.querySelector(".progress-fill");
+  const trackId = Number(card.dataset.trackId);
+  const track = window.currentTracks?.find((t) => t.id === trackId);
+
+  if (playIcon) playIcon.className = "fa-solid fa-play";
+  if (currentEl) currentEl.textContent = "0:00";
+  if (durationEl) durationEl.textContent = formatTime(track?._duration || 0);
+  if (fill) fill.style.width = "0%";
+});
+
+  if (!current) return;
+
+  const matchedTrack = window.currentTracks?.find((t) => {
+    const audioSrc = t.audio
+      ? (t.audio.startsWith("http") ? t.audio : "/" + t.audio.replace(/^\/+/, ""))
+      : "";
+
+    return (
+      (current.audioSrc && current.audioSrc === audioSrc) ||
+      (current.soundcloud && current.soundcloud === (t.soundcloud || ""))
+    );
+  });
+
+  if (!matchedTrack) return;
+
+  const card = document.getElementById(`track-card-${matchedTrack.id}`);
+  if (!card) return;
+
+  const playIcon = card.querySelector(".play-btn i");
+  const currentEl = document.getElementById(`current-${matchedTrack.id}`);
+  const durationEl = document.getElementById(`duration-${matchedTrack.id}`);
+  const fill = document.getElementById(`progress-${matchedTrack.id}`);
+
+  if (playIcon) {
+    playIcon.className = isPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+  }
+
+  if (currentEl) {
+    currentEl.textContent = formatTime(currentTime);
+  }
+
+  if (durationEl) {
+    durationEl.textContent = formatTime(duration);
+  }
+
+  if (fill && duration > 0) {
+    fill.style.width = `${(currentTime / duration) * 100}%`;
+  }
+}
+
+function seekTrack(event, id) {
+  event.stopPropagation();
+
+  const state = window.getGlobalPlayerState?.();
+  const current = state?.track;
+  if (!current) return;
+
+  const track = window.currentTracks.find((t) => t.id === id);
+  if (!track) return;
+
+  const audioSrc = track.audio
+    ? (track.audio.startsWith("http") ? track.audio : "/" + track.audio.replace(/^\/+/, ""))
+    : "";
+
+  const isSameTrack =
+    (current.audioSrc && current.audioSrc === audioSrc) ||
+    (current.soundcloud && current.soundcloud === (track.soundcloud || ""));
+
+  if (!isSameTrack) return;
+
+  const duration = state?.duration || 0;
+  if (!duration) return;
+
+  const rect = event.currentTarget.getBoundingClientRect();
+  const percent = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+
+  if (typeof window.seekGlobalPlayer === "function") {
+    window.seekGlobalPlayer(percent, "embedded");
+  }
+}
+
+function goToTrack(event, id) {
+  if (
+    event.target.closest(".play-btn") ||
+    event.target.closest(".track-actions") ||
+    event.target.closest(".track-menu") ||
+    event.target.closest(".dots-btn") ||
+    event.target.closest(".dropdown") ||
+    event.target.closest(".volume-row")
+  ) return;
+
+  const track = window.currentTracks.find((t) => t.id === id);
+  if (!track) return;
+
+  navigate(`/${track.username_tag}/${track.slug}`);
+}
+
+function editTrack(id) {
+  const track = window.currentTracks?.find((t) => t.id === id);
+  if (!track) return;
+
+  const modal = document.getElementById("trackModal");
+  if (!modal) return;
+
+  modal.dataset.editId = id;
+
+  const title = modal.querySelector(".profile-post-modal-title");
+  if (title) title.innerText = "Редактирование трека";
+
+  document.getElementById("trackTitle").value = track.title || "";
+  document.getElementById("trackArtist").value = track.artist || "";
+  document.getElementById("trackGenre").value = track.genre || "";
+  document.getElementById("trackProducer").value = track.producer || "";
+  document.getElementById("trackDescription").value = track.description || "";
+
+  currentTags = track.tags ? track.tags.split(",") : [];
+  renderTags();
+
+  if (track.cover) {
+    const preview = document.getElementById("trackCoverPreview");
+    const placeholder = document.getElementById("trackCoverPlaceholder");
+
+    preview.src = track.cover;
+    preview.style.display = "block";
+    placeholder.style.display = "none";
+  }
+
+  if (track.audio) {
+    const player = document.getElementById("trackAudioPlayer");
+    const preview = document.getElementById("trackPreview");
+
+    player.src = track.audio;
+    preview.style.display = "block";
+  }
+
+  const submitBtn = document.getElementById("trackSubmitBtn");
+  if (submitBtn) {
+    submitBtn.innerText = "Сохранить изменения";
+  }
+
+  modal.style.display = "flex";
+}
+
+async function deleteTrack(id) {
+  const ok = confirm("Удалить трек навсегда?");
+  if (!ok) return;
+
+  const res = await fetch(`/delete-track/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  if (!res.ok) {
+    alert("Ошибка удаления");
+    return;
+  }
+
+  loadTracks();
+}
+
+function pinTrack(id) {
+  console.log("pin", id);
+}
+
+async function archiveTrack(id) {
+  const res = await fetch(`/archive-track/${id}`, {
+    method: "PUT",
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  if (!res.ok) {
+    alert("Ошибка архивации");
+    return;
+  }
+
+  loadTracks();
+}
+
+function goToTrackAuthorProfile(event, tag) {
+  if (event) event.stopPropagation();
+  if (!tag) return;
+  navigate(`/${tag}`);
+}
+
+function renderTags() {
+  const container = document.getElementById("trackTagsContainer");
+  const input = document.getElementById("trackTagsInput");
+
+  if (!container || !input) return;
+
+  container.innerHTML = "";
+
+  currentTags.forEach((tag, index) => {
+    const el = document.createElement("div");
+    el.className = "tag-chip";
+    el.innerHTML = `
+      <span class="tag-text">${tag}</span>
+      <span class="tag-remove" onclick="removeTag(${index})">
+        <i class="fa-solid fa-xmark"></i>
+      </span>
+    `;
+    container.appendChild(el);
+  });
+
+  container.appendChild(input);
+}
+
+function removeTag(index) {
+  currentTags.splice(index, 1);
+  renderTags();
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+
+  const date = new Date(dateStr);
+  const diff = (Date.now() - date) / 1000;
+
+  if (diff < 60) return "только что";
+  if (diff < 3600) return Math.floor(diff / 60) + " мин назад";
+  if (diff < 86400) return Math.floor(diff / 3600) + " ч назад";
+  if (diff < 604800) return Math.floor(diff / 86400) + " д назад";
+
+  return date.toLocaleDateString();
+}
+
+function goToComments(slug, tag) {
+  navigate(`/${tag}/${slug}#comments`);
+}
+
+function copyTrackLink(slug, tag) {
+  const url = `${location.origin}/${tag}/${slug}`;
+
+  navigator.clipboard.writeText(url);
+
+  const toast = document.getElementById("copyToast");
+  if (!toast) return;
+
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2000);
+}
+
+function initTrackTags() {
+  const container = document.getElementById("trackTagsContainer");
+  const input = document.getElementById("trackTagsInput");
+
+  if (!container || !input) return;
+  if (input.dataset.tagsInitialized === "true") return;
+  input.dataset.tagsInitialized = "true";
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+
+      const value = input.value.trim().toLowerCase();
+      if (!value || currentTags.includes(value)) return;
+
+      currentTags.push(value);
+      input.value = "";
+
+      renderTags();
+    }
+  });
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".dots-btn");
+
+  if (btn) {
+    e.stopPropagation();
+
+    const menu = btn.nextElementSibling;
+
+    document.querySelectorAll(".dropdown").forEach((d) => {
+      if (d !== menu) d.classList.add("profile-hidden");
+    });
+
+    document.querySelectorAll(".track-card").forEach((c) => {
+      c.style.zIndex = 1;
+    });
+
+    const card = btn.closest(".track-card");
+    if (card) {
+      card.style.zIndex = 1000;
+    }
+
+    if (menu) menu.classList.toggle("profile-hidden");
+    return;
+  }
+
+  if (!e.target.closest(".track-menu")) {
+    document.querySelectorAll(".dropdown").forEach((d) => {
+      d.classList.add("profile-hidden");
+    });
+  }
+});
+
+window.initTracks = initTracks;
+window.loadTracks = loadTracks;
+window.playProfileTrack = playProfileTrack;
+window.seekTrack = seekTrack;
+window.goToTrack = goToTrack;
+window.editTrack = editTrack;
+window.deleteTrack = deleteTrack;
+window.pinTrack = pinTrack;
+window.archiveTrack = archiveTrack;
+window.goToTrackAuthorProfile = goToTrackAuthorProfile;
+window.goToComments = goToComments;
+window.copyTrackLink = copyTrackLink;
+window.initTrackTags = initTrackTags;
+window.removeTag = removeTag;
+
+function initTrackModal() {
+  const coverInput = document.getElementById("trackCoverInput");
+  const coverPreview = document.getElementById("trackCoverPreview");
+  const coverPlaceholder = document.getElementById("trackCoverPlaceholder");
+
+  const audioInput = document.getElementById("trackAudioInput");
+  const fileName = document.getElementById("trackFileName");
+  const audioPlayer = document.getElementById("trackAudioPlayer");
+  const preview = document.getElementById("trackPreview");
+
+  if (coverInput && !coverInput.dataset.trackModalInit) {
+    coverInput.dataset.trackModalInit = "true";
+
+    coverInput.addEventListener("change", () => {
+      const file = coverInput.files[0];
+      if (!file) return;
+
+      coverPreview.src = URL.createObjectURL(file);
+      coverPreview.style.display = "block";
+      coverPlaceholder.style.display = "none";
+    });
+  }
+
+  if (audioInput && !audioInput.dataset.trackAudioInit) {
+    audioInput.dataset.trackAudioInit = "true";
+
+    audioInput.addEventListener("change", () => {
+      const file = audioInput.files[0];
+      if (!file) return;
+
+      fileName.textContent = file.name;
+      audioPlayer.src = URL.createObjectURL(file);
+      preview.style.display = "block";
+    });
+  }
+}
+
+function resetTrackModal() {
+  const modal = document.getElementById("trackModal");
+
+  const title = document.getElementById("trackTitle");
+  const artist = document.getElementById("trackArtist");
+  const genre = document.getElementById("trackGenre");
+  const producer = document.getElementById("trackProducer");
+  const description = document.getElementById("trackDescription");
+
+  const coverInput = document.getElementById("trackCoverInput");
+  const coverPreview = document.getElementById("trackCoverPreview");
+  const coverPlaceholder = document.getElementById("trackCoverPlaceholder");
+
+  const audioInput = document.getElementById("trackAudioInput");
+  const fileName = document.getElementById("trackFileName");
+  const audioPlayer = document.getElementById("trackAudioPlayer");
+  const preview = document.getElementById("trackPreview");
+
+  const titleEl = modal?.querySelector(".profile-post-modal-title");
+  const submitBtn = document.getElementById("trackSubmitBtn");
+
+  if (modal) {
+    delete modal.dataset.editId;
+  }
+
+  if (title) title.value = "";
+  if (artist) artist.value = "";
+  if (genre) genre.value = "";
+  if (producer) producer.value = "";
+  if (description) description.value = "";
+
+  currentTags = [];
+  renderTags();
+
+  if (coverInput) coverInput.value = "";
+  if (coverPreview) {
+    coverPreview.src = "";
+    coverPreview.style.display = "none";
+  }
+  if (coverPlaceholder) {
+    coverPlaceholder.style.display = "flex";
+  }
+
+  if (audioInput) audioInput.value = "";
+  if (fileName) fileName.textContent = "Файл не выбран";
+  if (audioPlayer) {
+    audioPlayer.src = "";
+    audioPlayer.load();
+  }
+  if (preview) preview.style.display = "none";
+
+  if (titleEl) titleEl.innerText = "Загрузить трек";
+  if (submitBtn) submitBtn.innerText = "Загрузить трек";
+}
+
+function openTrackModal() {
+  const modal = document.getElementById("trackModal");
+  if (!modal) return;
+
+  resetTrackModal();
+  modal.style.display = "flex";
+}
+
+function closeTrackModal() {
+  const modal = document.getElementById("trackModal");
+  if (!modal) return;
+
+  modal.style.display = "none";
+  resetTrackModal();
+}
+
+async function submitUserTrack() {
+  const modal = document.getElementById("trackModal");
+  const editId = modal?.dataset?.editId;
+
+  const title = document.getElementById("trackTitle")?.value.trim() || "";
+  const artist = document.getElementById("trackArtist")?.value.trim() || "";
+  const genre = document.getElementById("trackGenre")?.value.trim() || "";
+  const producer = document.getElementById("trackProducer")?.value.trim() || "";
+  const description = document.getElementById("trackDescription")?.value.trim() || "";
+
+  const coverFile = document.getElementById("trackCoverInput")?.files?.[0];
+  const audioFile = document.getElementById("trackAudioInput")?.files?.[0];
+
+  if (!title) {
+    alert("Название обязательно");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("title", title);
+  formData.append("artist", artist);
+  formData.append("genre", genre);
+  formData.append("producer", producer);
+  formData.append("description", description);
+  formData.append("tags", currentTags.join(","));
+
+  if (coverFile) formData.append("cover", coverFile);
+  if (audioFile) formData.append("audio", audioFile);
+
+  let url = "/add-user-track";
+  let method = "POST";
+
+  if (editId) {
+    url = `/update-track/${editId}`;
+    method = "PUT";
   }
 
   const res = await fetch(url, {
-    headers:{
-      Authorization:"Bearer "+localStorage.getItem("token")
-    }
-  })
+    method,
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("token")
+    },
+    body: formData
+  });
 
-  const tracks = await res.json()
-
-  const container = document.getElementById("tracksContainer")
-  if(!container) return
-
-  container.innerHTML = ""
-
-  tracks.forEach(track => {
-    let cover = "/images/default-cover.jpg"
-
-if(track.cover){
-  if(track.cover.startsWith("http")){
-    cover = track.cover
-  }else{
-    cover = "/" + track.cover.replace(/^\/+/, "")
-  }
-}
-
-    container.innerHTML += `
-    
-<div class="track-card">
-
-  <div class="track-main">
-
-    <img src="${cover}" class="track-cover">
-
-    <div class="track-info">
-
-      <div class="track-top">
-
-        <div>
-          <div class="track-artist">${track.artist || "Unknown"}</div>
-          <div class="track-title">${track.title}</div>
-        </div>
-
-        <div class="track-meta">
-          <span class="track-genre">${track.genre || "—"}</span>
-          <span class="track-date">
-            ${track.createdAt ? new Date(track.createdAt).toLocaleDateString() : ""}
-          </span>
-        </div>
-
-      </div>
-
-      <div class="track-player">
-
-        <button class="play-btn">
-          <i class="fa-solid fa-play"></i>
-        </button>
-
-        <div class="track-progress">
-          <div class="track-bar"></div>
-        </div>
-
-        <audio src="${track.audio || ""}"></audio>
-
-      </div>
-
-    </div>
-
-  </div>
-
- 
-
-  <div class="track-comment">
-
-    <img src="${currentUser.avatar || '/images/default-avatar.jpg'}" class="comment-avatar">
-
-    <input placeholder="Написать комментарий...">
-
-    <button>➤</button>
-
-  </div>
-
-   <div class="track-actions">
-
-    <button><i class="fa-solid fa-heart"></i></button>
-    <button><i class="fa-solid fa-retweet"></i></button>
-    <button><i class="fa-solid fa-link"></i></button>
-    <button><i class="fa-solid fa-ellipsis"></i></button>
-
-  </div>
-
-</div>
-
-    `
-
-  })
-
-}
-
-// ▶️ PLAY
-document.addEventListener("click", (e)=>{
-
-  const btn = e.target.closest(".play-btn")
-  if(!btn) return
-
-  const card = btn.closest(".track-card")
-  const audio = card.querySelector("audio")
-  const icon = btn.querySelector("i")
-
-  if(!audio) return
-
-  // ❗ стоп всех других треков
-  document.querySelectorAll(".track-card audio").forEach(a=>{
-    if(a !== audio){
-      a.pause()
-      a.currentTime = 0
-
-      const otherBtn = a.closest(".track-card")?.querySelector(".play-btn i")
-      if(otherBtn){
-        otherBtn.className = "fa-solid fa-play"
-      }
-    }
-  })
-
-  if(audio.paused){
-
-    audio.play().catch(err=>{
-      console.log("play error", err)
-    })
-
-    icon.className = "fa-solid fa-pause"
-
-  }else{
-
-    audio.pause()
-    icon.className = "fa-solid fa-play"
-
+  if (!res.ok) {
+    alert(editId ? "Ошибка обновления" : "Ошибка загрузки");
+    return;
   }
 
-})
+  closeTrackModal();
+  loadTracks();
+}
+
+window.initTrackModal = initTrackModal;
+window.openTrackModal = openTrackModal;
+window.closeTrackModal = closeTrackModal;
+window.submitUserTrack = submitUserTrack;

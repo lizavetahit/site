@@ -1,15 +1,10 @@
-body{
-margin:0;
-min-height:100vh;
-background: transparent;
-font-family:Arial, sans-serif;
-}
+
 
 .auth-container{
 display:flex;
 justify-content:center;
 align-items:center;
-
+font-family: Arial, sans-serif;
 min-height:100vh;
 padding-top:100px; /* ← ВОТ ЭТО ГЛАВНОЕ */
 }
@@ -58,19 +53,19 @@ color:#777;
 
 }
 
-.subtitle{
+.auth-card .subtitle{
 color:#aaa;
 margin-bottom:25px;
 }
 
-label{
+.auth-card label{
 display:block;
 margin-top:15px;
 font-size:14px;
 }
 
 
-button{
+.auth-card button{
 margin-top:20px;
 width:100%;
 padding:12px;
@@ -82,35 +77,32 @@ font-weight:bold;
 cursor:pointer;
 }
 
-button:hover{
+.auth-card button:hover{
 background:#6d28d9;
 }
 
-.error{
+.auth-card .error{
 margin-top:10px;
 color:#ff6b6b;
 font-size:14px;
 }
 
-.login-link{
+.auth-card .login-link{
 margin-top:15px;
 text-align:center;
 font-size:14px;
 }
 
-.login-link a{
+.auth-card .login-link a{
 color:#a78bfa;
 text-decoration:none;
 }
 
-.auth-switch {
+.auth-card .auth-switch {
   margin-top: 15px;
-  text-align: center; /* ВОТ ЭТО ГЛАВНОЕ */
+  text-align: center;
   font-size: 14px;
   color: rgba(255,255,255,0.5);
-}
-
-.auth-switch {
   opacity: 0;
   transform: translateY(10px);
   animation: fadeUp 0.6s ease forwards;
@@ -124,19 +116,19 @@ text-decoration:none;
   }
 }
 
-.auth-switch a {
+.auth-card .auth-switch a {
   color: #8b5cf6;
   text-decoration: none;
   font-weight: 500;
   transition: 0.2s;
 }
 
-.auth-switch a:hover {
+.auth-card .auth-switch a:hover {
   color: #c084fc;
   text-decoration: underline;
 }
 
-.tag-status {
+.auth-card .tag-status {
   margin-top: 6px;
   font-size: 13px;
   opacity: 0.9;
@@ -144,13 +136,13 @@ text-decoration:none;
 }
 
 /* 🟢 успех */
-input.valid {
+.auth-card input.valid {
   border: 1px solid rgba(34,197,94,0.5);
   box-shadow: 0 0 12px rgba(34,197,94,0.25);
 }
 
 /* 🔴 ошибка */
-input.invalid {
+.auth-card input.invalid {
   border: 1px solid rgba(239,68,68,0.5);
   box-shadow: 0 0 12px rgba(239,68,68,0.25);
 }
@@ -161,12 +153,12 @@ input.invalid {
   box-shadow: 0 0 10px rgba(139,92,246,0.3);
 }
 
-.tg-login {
+.auth-card .tg-login {
   margin-top: 20px;
   text-align: center;
 }
 
-.tg-login p {
+.auth-card .tg-login p {
   color: rgba(255,255,255,0.5);
   margin-bottom: 10px;
 }

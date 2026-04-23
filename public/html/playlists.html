@@ -1,63 +1,38 @@
-<!DOCTYPE html>
-<html lang="ru">
+<main class="playlists-page">
 
-<script src="https://w.soundcloud.com/player/api.js"></script>
-<head>
-  <meta charset="UTF-8" />
-  <title>Плейлисты</title>
+  <section class="playlists-screen" id="playlistsScreen">
+    <div class="playlists-header">
+      <h1>Плейлисты</h1>
+      <button class="playlists-create-btn" type="button">+ Создать плейлист</button>
+    </div>
 
-  <link rel="stylesheet" href="/styles/base.css" />
-  <link rel="stylesheet" href="/styles/navbar.css" />
-  <link rel="stylesheet" href="/styles/player.css">
-  <link rel="stylesheet" href="/styles/style.css" />
-  <link rel="stylesheet" href="/styles/playlists.css" />
-</head>
+    <div class="playlists-grid"></div>
+  </section>
 
-<body>
-  <div class="video-background">
-    <video autoplay muted loop playsinline id="background-video">
-      <source src="/images/bg.mp4" type="video/mp4" />
-    </video>
-  </div>
+  <section class="playlists-view playlists-hidden" id="playlistView">
+    <button class="playlists-back-btn" type="button">← Назад</button>
 
-  <div id="navbar"></div>
-  <div id="player"></div>
+    <div class="playlists-view-header">
+      <div class="playlists-cover playlists-cover-large" id="viewCover"></div>
 
-  <main class="page">
-    <section class="playlists-screen" id="playlistsScreen">
-      <div class="page-header">
-        <h1>Плейлисты</h1>
-        <button class="create-btn" type="button">+ Создать плейлист</button>
+      <div class="playlists-meta">
+        <p class="playlists-label">Плейлист</p>
+        <h2 id="viewTitle">Плейлист</h2>
+        <p id="viewCount">0 треков</p>
       </div>
+    </div>
 
-      <div class="playlists-grid"></div>
-    </section>
-
-    <section class="playlist-view hidden" id="playlistView">
-      <button class="back-btn" type="button">← Назад</button>
-
-      <div class="playlist-view-header">
-        <div class="playlist-cover large" id="viewCover"></div>
-
-        <div class="playlist-meta">
-          <p class="playlist-label">Плейлист</p>
-          <h2 id="viewTitle">Плейлист</h2>
-          <p id="viewCount">0 треков</p>
-        </div>
+    <div class="playlists-tracks-box">
+      <div class="playlists-empty-tracks">
+        <p>Здесь пока нет треков</p>
       </div>
+    </div>
+  </section>
 
-      <div class="tracks-box">
-        <div class="empty-tracks">
-          <p>Здесь пока нет треков</p>
-        </div>
-      </div>
-    </section>
-  </main>
+  <div class="playlists-modal" id="playlistModal">
+    <div class="playlists-modal-overlay"></div>
 
-  <div class="modal" id="playlistModal">
-    <div class="modal-overlay"></div>
-
-    <div class="modal-content">
+    <div class="playlists-modal-content">
       <h2>Новый плейлист</h2>
 
       <input
@@ -67,9 +42,9 @@
         maxlength="40"
       />
 
-      <div class="modal-actions">
-        <button class="cancel-btn" type="button">Отмена</button>
-        <button class="save-btn" type="button">Создать</button>
+      <div class="playlists-modal-actions">
+        <button class="playlists-cancel-btn" type="button">Отмена</button>
+        <button class="playlists-save-btn" type="button">Создать</button>
       </div>
     </div>
   </div>
@@ -81,8 +56,4 @@
     hidden
   />
 
-  <script src="/js/navbar.js"></script>
-  <script src="/js/player.js"></script>
-  <script src="/js/playlists.js"></script>
-</body>
-</html>
+</main>

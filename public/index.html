@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>РИТМОРИЯ</title>
+
+  <script src="https://w.soundcloud.com/player/api.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+ 
+  <link rel="stylesheet" href="/styles/base.css">
+  <link rel="stylesheet" href="/styles/navbar.css">
+  
+  
+</head>
+<body>
+
+  <!-- ВИДЕОФОН -->
+  <div class="video-background">
+    <video muted loop playsinline id="background-video">
+      <source src="/images/bg.mp4" type="video/mp4">
+    </video>
+  </div>
+
+  <!-- ОБЩИЕ ЭЛЕМЕНТЫ SPA -->
+  <div id="navbar"></div>
+  <div id="app"></div>
+  <div id="player"></div>
+
+  <script src="/js/navbar.js"></script>
+  <script src="https://unpkg.com/wavesurfer.js"></script>
+
+  <script type="module">
+    import { renderPage } from "/js/router.js";
+    renderPage(location.pathname + location.search);
+  </script>
+
+<div id="globalLoader" class="page-loader hidden">
+  <div class="spinner"></div>
+</div>
+
+<script src="/js/player.js"></script>
+
+<script>
+window.addEventListener("load", () => {
+  const video = document.getElementById("background-video");
+  if (video) {
+    video.play().catch(() => {});
+  }
+});
+</script>
+</body>
+</html>

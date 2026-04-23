@@ -1,59 +1,84 @@
 <header class="navbar">
-  <a href="/html/index.html" class="logo">
-    <span class="logo-text">#РИТМОРИЯ</span>
+
+  <!-- ЛОГО -->
+  <a href="/" class="navbar-logo">
+    <div class="navbar-logo-wrap">
+      <img src="/images/logo.png" class="navbar-logo-img">
+      <span class="navbar-logo-text">РИТМОРИЯ</span>
+    </div>
   </a>
 
-  <button class="nav-headphones" onclick="togglePlayer()">🎧</button>
+  <!-- ЦЕНТР -->
+  <div class="navbar-center">
+    <div class="navbar-search">
+      <i class="fa-solid fa-magnifying-glass navbar-search-icon"></i>
 
-  <div class="nav-search">
-    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input
+        type="text"
+        id="globalSearch"
+        class="navbar-search-input"
+        placeholder="Поиск треков, пользователей..."
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+      />
 
-    <input 
-  type="text" 
-  id="globalSearch" 
-  placeholder="Поиск треков, пользователей..."
-  autocomplete="off"
-  autocorrect="off"
-  autocapitalize="off"
-  spellcheck="false"
-/>
-
-    <div id="searchResults" class="search-results"></div>
+      <div id="searchResults" class="navbar-search-results"></div>
+    </div>
   </div>
 
-  <nav>
-    <a href="/html/index.html">Главная</a>
-    <a href="/html/submit.html">Скинуть трек</a>
-    <a href="/html/queue.html" class="queue-link">
-  Очередь
-  <span id="queueStatus" class="queue-dot"></span>
-</a>
-    <a href="/html/discover.html">Дискавер</a>
+  <!-- ПРАВАЯ ЧАСТЬ -->
+  <nav class="navbar-nav">
 
-    <!-- Гость -->
-    <div id="navGuest">
-      <a href="/html/login.html">Вход</a>
-      <a href="/html/register.html">Регистрация</a>
+    <div class="navbar-links">
+      <a href="/" class="navbar-link" data-page="index">Главная</a>
+      <a href="/playlists" class="navbar-link" data-page="playlists">Плейлисты</a>
+      <a href="/submit" class="navbar-link" data-page="submit">+ Залить трек</a>
+
+      <a href="/queue" class="navbar-link navbar-queue-link" data-page="queue">
+        Очередь
+        <span id="queueStatus" class="navbar-queue-dot"></span>
+      </a>
+
+      <a href="/discover" class="navbar-link" data-page="discover">Дискавер</a>
+
+      <div class="navbar-indicator"></div>
     </div>
 
-    <!-- Пользователь -->
-    <div id="navUser" class="hidden">
-      <div class="nav-user" id="navUserBtn">
-        <img id="navAvatar" class="nav-avatar" src="/images/default-avatar.jpg">
-      </div>
+    <div class="navbar-right-extra">
 
-      <!-- Dropdown -->
-      <div class="nav-dropdown" id="navDropdown">
-        <div class="dropdown-item" onclick="goToProfile()">Профиль</div>
-        <div class="dropdown-item" onclick="goToSettings()">Настройки</div>
-        <div class="dropdown-divider"></div>
+      <div id="navGuest" class="navbar-guest">
+  <a href="/login" class="navbar-link">Вход</a>
+  <a href="/register" class="navbar-link">Регистрация</a>
+</div>
 
-        <div id="adminPanelBtn" class="dropdown-item hidden" onclick="goToAdmin()">
-          Админ панель
+      <div id="navUser" class="navbar-user-wrap navbar-hidden">
+        <div class="navbar-user" id="navUserBtn">
+          <img id="navAvatar" class="navbar-avatar" src="/images/default-avatar.jpg">
         </div>
 
-        <div class="dropdown-item logout" onclick="logout()">Выйти</div>
+        <div class="navbar-dropdown" id="navDropdown">
+          <div class="navbar-dropdown-item" onclick="goToProfile()">Профиль</div>
+          <div class="navbar-dropdown-item" onclick="goToSettings()">Настройки</div>
+
+          <div class="navbar-dropdown-divider"></div>
+
+          <div
+            id="adminPanelBtn"
+            class="navbar-dropdown-item navbar-hidden"
+            onclick="goToAdmin()"
+          >
+            Админ панель
+          </div>
+
+          <div class="navbar-dropdown-item navbar-dropdown-item-logout" onclick="logout()">
+            Выйти
+          </div>
+        </div>
       </div>
+
     </div>
+
   </nav>
 </header>

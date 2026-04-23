@@ -1,189 +1,129 @@
-<!DOCTYPE html>
-<html lang="ru">
+<div class="home-page">
+  <div class="home-layout">
 
+    <aside class="home-left-panel">
+      <h2 class="home-panel-title">🔥 Топ треки</h2>
 
-<script src="https://w.soundcloud.com/player/api.js"></script>
-<script src="/js/player.js"></script>
-<head>
-  <meta charset="UTF-8">
-  <title>Music Platform</title>
+      <a href="/track?id=1" class="home-track-link">
+        <div class="home-track-card">
+          <img src="https://picsum.photos/300/200" alt="Track cover">
+          <p class="home-track-card-title">Artist — Track</p>
+          <span class="home-track-card-score">⭐ 90</span>
+        </div>
+      </a>
 
+      <a href="/track?id=2" class="home-track-link">
+        <div class="home-track-card">
+          <img src="https://picsum.photos/300/201" alt="Track cover">
+          <p class="home-track-card-title">Artist — Track</p>
+          <span class="home-track-card-score">⭐ 89</span>
+        </div>
+      </a>
+    </aside>
 
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet">
+    <main class="home-feed">
+      <h2 class="home-feed-title">Рекомендованные посты</h2>
 
-  <link rel="stylesheet" href="/styles/base.css">
-  <link rel="stylesheet" href="/styles/navbar.css">
-  <link rel="stylesheet" href="/styles/player.css">
-  <link rel="stylesheet" href="/styles/style.css">
-</head>
+      <div class="home-post">
+        <div class="home-post-header">
+          <img src="https://picsum.photos/40" alt="Avatar">
 
+          <div class="home-post-user">
+            <span class="home-post-name">Producer123</span>
+            <span class="home-post-time">2 мин назад</span>
+          </div>
 
-<body>
+          <div class="home-post-actions">
+            <button class="home-action-btn">🔥 12</button>
+            <button class="home-action-btn">💬 3</button>
+          </div>
+        </div>
 
-<!-- 🔥 ВИДЕО ФОН -->
-<div class="video-background">
-  <video autoplay muted loop playsinline id="background-video">
-    <source src="/images/bg.mp4" type="video/mp4">
-  </video>
-</div>
+        <p class="home-post-text">Сегодня дропаю новый трек 🔥</p>
+      </div>
 
-<!-- NAVBAR -->
-<div id="navbar"></div>
-<div id="player"></div>
+      <div class="home-post">
+        <div class="home-post-header">
+          <img src="https://picsum.photos/50" alt="Avatar">
 
+          <div class="home-post-user">
+            <span class="home-post-name">Dj Alex</span>
+            <span class="home-post-time">2 мин назад</span>
+          </div>
 
-<div class="main-layout">
+          <div class="home-post-actions">
+            <button class="home-action-btn">🔥 12</button>
+            <button class="home-action-btn">💬 3</button>
+          </div>
+        </div>
 
-<!-- ЛЕВАЯ КОЛОНКА -->
-<aside class="left-panel">
+        <p class="home-post-text">Кто сегодня кидает треки на стрим?</p>
+      </div>
 
-<h2>🔥 Топ треки</h2>
+      <div class="home-post">
+        <div class="home-post-header">
+          <img src="https://picsum.photos/60" alt="Avatar">
 
-<a href="/html/track.html" class="track-link">
-<div class="track-card">
-<img src="https://picsum.photos/300/200">
-<p>Artist — Track</p>
-<span>⭐ 90</span>
-</div>
-</a>
+          <div class="home-post-user">
+            <span class="home-post-name">Beatmaker</span>
+            <span class="home-post-time">2 мин назад</span>
+          </div>
 
-<a href="/html/track.html" class="track-link">
-<div class="track-card">
-<img src="https://picsum.photos/300/201">
-<p>Artist — Track</p>
-<span>⭐ 89</span>
-</div>
-</a>
+          <div class="home-post-actions">
+            <button class="home-action-btn">🔥 12</button>
+            <button class="home-action-btn">💬 3</button>
+          </div>
+        </div>
 
-</aside>
+        <p class="home-post-text">Работаю над новым альбомом 🎶</p>
+      </div>
+    </main>
 
-<!-- ЦЕНТР -->
-<main class="feed">
+    <aside class="home-right-panel">
+      <h2 class="home-panel-title">🏆 Топ исполнители</h2>
 
-<h2 class="feed-title">Рекомендованные посты</h2>
+      <div class="home-artist-card">
+        <div class="home-artist-left">
+          <div class="home-artist-rank">#1</div>
+          <img src="https://picsum.photos/100" alt="Artist avatar">
 
-<div class="post">
-<div class="post-header">
-  <img src="https://picsum.photos/40">
-  
-  <div class="post-user">
-    <span class="post-name">Producer123</span>
-    <span class="post-time">2 мин назад</span>
+          <div class="home-artist-info">
+            <span class="home-artist-name">ProducerX</span>
+            <span class="home-artist-meta">🔥 120 лайков</span>
+          </div>
+        </div>
+
+        <div class="home-artist-status home-artist-status-online"></div>
+      </div>
+
+      <div class="home-artist-card">
+        <div class="home-artist-left">
+          <div class="home-artist-rank">#2</div>
+          <img src="https://picsum.photos/101" alt="Artist avatar">
+
+          <div class="home-artist-info">
+            <span class="home-artist-name">DjAlex</span>
+            <span class="home-artist-meta">🔥 103 лайков</span>
+          </div>
+        </div>
+
+        <div class="home-artist-status home-artist-status-online"></div>
+      </div>
+
+      <div class="home-artist-card">
+        <div class="home-artist-left">
+          <div class="home-artist-rank">#3</div>
+          <img src="https://picsum.photos/102" alt="Artist avatar">
+
+          <div class="home-artist-info">
+            <span class="home-artist-name">BeatMaker</span>
+            <span class="home-artist-meta">🔥 117 лайков</span>
+          </div>
+        </div>
+
+        <div class="home-artist-status home-artist-status-online"></div>
+      </div>
+    </aside>
+
   </div>
-<div class="post-actions">
-  <button class="action-btn">🔥 12</button>
-  <button class="action-btn">💬 3</button>
 </div>
-</div>
-<p>Сегодня дропаю новый трек 🔥</p>
-</div>
-
-<div class="post">
-<div class="post-header">
-  <img src="https://picsum.photos/50">
-  
-  <div class="post-user">
-    <span class="post-name">Dj Alex</span>
-    <span class="post-time">2 мин назад</span>
-  </div>
-<div class="post-actions">
-  <button class="action-btn">🔥 12</button>
-  <button class="action-btn">💬 3</button>
-</div>
-</div>
-<p>Кто сегодня кидает треки на стрим?</p>
-</div>
-
-<div class="post">
-<div class="post-header">
-  <img src="https://picsum.photos/60">
-  
-  <div class="post-user">
-    <span class="post-name">Beatmaker</span>
-    <span class="post-time">2 мин назад</span>
-  </div>
-<div class="post-actions">
-  <button class="action-btn">🔥 12</button>
-  <button class="action-btn">💬 3</button>
-</div>
-</div>
-<p>Работаю над новым альбомом 🎶</p>
-</div>
-
-</main>
-
-<!-- ПРАВАЯ КОЛОНКА -->
-<aside class="right-panel">
-
-<h2>🏆 Топ исполнители</h2>
-
-<div class="artist">
-
-  <div class="artist-left">
-    <div class="artist-rank">#1</div>
-
-    <img src="https://picsum.photos/100">
-
-    <div class="artist-info">
-      <span class="artist-name">ProducerX</span>
-      <span class="artist-meta">🔥 120 лайков</span>
-    </div>
-  </div>
-
-  <div class="artist-status online"></div>
-
-</div>
-
-<div class="artist">
-
-  <div class="artist-left">
-    <div class="artist-rank">#1</div>
-
-    <img src="https://picsum.photos/101">
-
-    <div class="artist-info">
-      <span class="artist-name">DjAlex</span>
-      <span class="artist-meta">🔥 103 лайков</span>
-    </div>
-  </div>
-
-  <div class="artist-status online"></div>
-
-</div>
-
-<div class="artist">
-
-  <div class="artist-left">
-    <div class="artist-rank">#1</div>
-
-    <img src="https://picsum.photos/100">
-
-    <div class="artist-info">
-      <span class="artist-name">BeatMaker</span>
-      <span class="artist-meta">🔥 117 лайков</span>
-    </div>
-  </div>
-
-  <div class="artist-status online"></div>
-
-</div>
-
-</aside>
-
-</div>
-
-<!-- 🔥 ПОДГРУЗКА NAVBAR -->
-<script>
-fetch("/html/components/navbar.html")
-.then(res => res.text())
-.then(data => {
-  document.getElementById("navbar").innerHTML = data
-
-  const script = document.createElement("script")
-  script.src = "/js/navbar.js"
-  document.body.appendChild(script)
-})
-</script>
-
-</body>
-</html>

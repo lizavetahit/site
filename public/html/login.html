@@ -1,76 +1,45 @@
-<!DOCTYPE html>
-<html>
+<div class="auth-page">
 
-<script src="https://w.soundcloud.com/player/api.js"></script>
-<head>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet"><meta charset="UTF-8">
-<title>Вход</title>
+  <div class="auth-card">
+    <h1 class="auth-card-title">Вход</h1>
+    <p class="auth-card-subtitle">Войди в свой аккаунт на музыкальной платформе</p>
 
-<link rel="stylesheet" href="/styles/base.css">
-<link rel="stylesheet" href="/styles/navbar.css">
-<link rel="stylesheet" href="/styles/style.css">
-<link rel="stylesheet" href="/styles/register.css">
+    <form id="loginForm" class="auth-form">
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+      <label class="auth-label">Email или @username</label>
+      <input
+        id="email"
+        class="auth-input"
+        type="text"
+        placeholder="email или @username"
+      >
 
+      <label class="auth-label">Пароль</label>
+      <input
+        type="password"
+        id="password"
+        class="auth-input"
+        placeholder="Введите пароль"
+      >
 
-</head>
+      <div id="error" class="auth-error"></div>
 
-<body>
+      <button type="submit" class="auth-submit-btn">Войти</button>
 
-<div class="video-background">
-  <video autoplay muted loop playsinline id="background-video">
-    <source src="/images/bg.mp4" type="video/mp4">
-  </video>
-</div>    
+      <p class="auth-switch">
+        Нет аккаунта? <a href="/register">Зарегистрироваться</a>
+      </p>
 
-<div id="navbar"></div>
+      <div class="auth-telegram">
+        <p class="auth-telegram-text">Или войди через Telegram</p>
 
-<div class="auth-container">
+        <div class="telegram-widget-wrap">
+        </div>
 
-<div class="auth-card">
+        <img id="tgAvatar" class="auth-telegram-avatar auth-hidden" />
+      </div>
 
-<h1>Вход</h1>
-
-<form id="loginForm">
-
-<label>email или @username"</label>
-<input id="email" type="text" placeholder="email или @username">
-
-<label>Пароль</label>
-<input type="password" id="password">
-
-<div id="error" class="error"></div>
-
-<button type="submit">Войти</button>
-
-<p class="auth-switch">
-  Нет аккаунта? <a href="/html/register.html">Зарегистрироваться</a>
-</p>
-
-<div class="telegram-widget-wrap">
-  <script async src="https://telegram.org/js/telegram-widget.js?22"
-    data-telegram-login="ritmoriaauthBot"
-    data-size="large"
-    data-userpic="true"
-    data-radius="20"
-    data-request-access="write"
-    data-onauth="onTelegramAuth(user)">
-  </script>
-</div>
-
-  <img id="tgAvatar" class="tg-avatar hidden" />
-</div>
-
-</form>
+    </form>
+  </div>
 
 </div>
-
-</div>
-
-<script src="/js/navbar.js"></script>
-<script src="/js/player.js"></script>
-<script src="/js/login.js"></script>
-
-</body>
-</html>

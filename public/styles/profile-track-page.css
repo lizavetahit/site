@@ -1,0 +1,689 @@
+.profile-track-page,
+.profile-track-page * {
+  box-sizing: border-box;
+}
+
+.profile-track-page-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.profile-track-page {
+  width: 100%;
+  max-width: 1100px;
+  margin: 120px auto 40px;
+  padding: 0 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.profile-track-page .profile-track-main {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 40px;
+  padding: 30px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.profile-track-page .profile-track-left {
+  min-width: 0;
+}
+
+.profile-track-page .profile-track-header {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.profile-track-page .profile-track-play-btn {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #ff8a00, #ff5f00);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.profile-track-page .profile-track-play-btn:hover {
+  transform: scale(1.05);
+}
+
+.profile-track-page .profile-track-play-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.profile-track-page .profile-track-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-track-page .profile-track-info h1 {
+  margin: 0 0 10px;
+  font-size: 34px;
+  color: #fff;
+  line-height: 1.08;
+  word-break: break-word;
+}
+
+.profile-track-page .profile-track-sub {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.profile-track-page .profile-track-genre-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+}
+
+.profile-track-page .profile-track-producer {
+  color: rgba(255, 255, 255, 0.78);
+  margin-top: 6px;
+}
+
+.profile-track-page .profile-track-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.profile-track-page .profile-track-tags span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 12px;
+}
+
+.profile-track-page #profileTrackWaveform {
+  margin-top: 24px;
+  min-height: 100px;
+}
+
+.profile-track-page .profile-track-time-row {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.profile-track-page .profile-track-right {
+  min-width: 0;
+}
+
+.profile-track-page .profile-track-right img {
+  width: 100%;
+  display: block;
+  border-radius: 18px;
+  object-fit: cover;
+  aspect-ratio: 1 / 1;
+}
+
+.profile-track-page .profile-track-comments-block {
+  margin-top: 24px;
+  padding: 24px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.profile-track-page .profile-track-comments-block h2 {
+  margin: 0 0 16px;
+  color: #fff;
+}
+
+.profile-track-page .profile-track-comment-form {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  margin-bottom: 20px;
+}
+
+.profile-track-page .profile-track-comment-form textarea {
+  flex: 1;
+  min-height: 56px;
+  resize: vertical;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 15, 30, 0.55);
+  color: white;
+  padding: 14px;
+  outline: none;
+}
+
+.profile-track-page .profile-track-comment-form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.profile-track-page .profile-track-comment-form button {
+  border: none;
+  border-radius: 14px;
+  padding: 0 20px;
+  background: linear-gradient(135deg, #7b4b63, #b07497);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  min-width: 140px;
+}
+
+.profile-track-page .profile-track-comment-form button:hover {
+  opacity: 0.92;
+}
+
+.profile-track-page .profile-track-comment {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 10px;
+}
+
+.profile-track-page .profile-track-comment-top {
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.profile-track-page .profile-track-comment-text {
+  color: rgba(255, 255, 255, 0.85);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.profile-track-page .profile-track-comment-actions {
+  margin-top: 10px;
+}
+
+.profile-track-page .profile-track-comment-actions button {
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 0;
+}
+
+.profile-track-page .profile-track-empty,
+.profile-track-page .profile-track-error {
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+@media (max-width: 900px) {
+  .profile-track-page .profile-track-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .profile-track-page {
+    margin: 100px auto 30px;
+    padding: 0 14px;
+  }
+
+  .profile-track-page .profile-track-main {
+    padding: 20px;
+    gap: 24px;
+  }
+
+  .profile-track-page .profile-track-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-track-page .profile-track-info h1 {
+    font-size: 28px;
+  }
+
+  .profile-track-page .profile-track-comment-form {
+    flex-direction: column;
+  }
+
+  .profile-track-page .profile-track-comment-form button {
+    min-height: 48px;
+  }
+}
+
+/* Judge-inspired Refresh */
+
+.profile-track-page {
+  max-width: 1160px;
+}
+
+.profile-track-page::before {
+  content: "";
+  position: absolute;
+  inset: 18px 24px auto;
+  height: 220px;
+  background:
+    radial-gradient(circle at 14% 24%, rgba(217, 154, 188, 0.22), transparent 34%),
+    radial-gradient(circle at 84% 12%, rgba(176, 116, 151, 0.18), transparent 30%);
+  filter: blur(24px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.profile-track-page .profile-track-main {
+  position: relative;
+  gap: 34px;
+  padding: 34px;
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at top left, rgba(240, 186, 213, 0.12), transparent 30%),
+    linear-gradient(135deg, rgba(45, 27, 39, 0.9), rgba(18, 11, 18, 0.94));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.profile-track-page .profile-track-main::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 33px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.profile-track-page .profile-track-left,
+.profile-track-page .profile-track-right,
+.profile-track-page .profile-track-comments-block {
+  position: relative;
+  z-index: 1;
+}
+
+.profile-track-page .profile-track-header {
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.profile-track-page .profile-track-play-btn {
+  width: 108px;
+  height: 108px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.18), transparent 56%),
+    linear-gradient(135deg, #f0b6d1, #b07497 72%);
+  box-shadow:
+    0 20px 40px rgba(176, 116, 151, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-track-page .profile-track-play-btn i {
+  font-size: 22px;
+}
+
+.profile-track-page .profile-track-play-btn span {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.profile-track-page .profile-track-play-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.profile-track-page .profile-track-play-btn.is-playing {
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.2), transparent 56%),
+    linear-gradient(135deg, #efbfd7, #cb7da3 72%);
+}
+
+.profile-track-page .profile-track-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-track-page .profile-track-info h1 {
+  margin: 0;
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.profile-track-page .profile-track-sub {
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.profile-track-page .profile-track-author-link,
+.profile-track-page .profile-track-secondary-btn {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.88);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.profile-track-page .profile-track-author-link {
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profile-track-page .profile-track-author-link:hover,
+.profile-track-page .profile-track-secondary-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.profile-track-page .profile-track-genre-badge {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(176, 116, 151, 0.16);
+  border: 1px solid rgba(176, 116, 151, 0.22);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profile-track-page .profile-track-producer {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.profile-track-page .profile-track-tags {
+  margin-top: 2px;
+}
+
+.profile-track-page .profile-track-tags span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.profile-track-page .profile-track-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.profile-track-page .profile-track-metric {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 76px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  text-align: left;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.profile-track-page button.profile-track-metric {
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.profile-track-page button.profile-track-metric:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.profile-track-page .profile-track-metric-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.profile-track-page .profile-track-metric-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.profile-track-page .profile-track-metric-copy small {
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.profile-track-page .profile-track-metric-copy b {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.profile-track-page .profile-track-metric-like.is-active {
+  background: rgba(176, 116, 151, 0.16);
+  border-color: rgba(176, 116, 151, 0.3);
+}
+
+.profile-track-page .profile-track-metric-like.is-active .profile-track-metric-icon {
+  background: rgba(176, 116, 151, 0.28);
+}
+
+.profile-track-page .profile-track-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.profile-track-page .profile-track-secondary-btn {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.profile-track-page .profile-track-wave-head {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profile-track-page .profile-track-section-kicker {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.46);
+}
+
+.profile-track-page #profileTrackWaveStatus {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+}
+
+.profile-track-page #profileTrackWaveform {
+  margin-top: 16px;
+  min-height: 112px;
+  padding: 12px 0 2px;
+}
+
+.profile-track-page .profile-track-waveform {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.profile-track-page .profile-track-time-row {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+}
+
+.profile-track-page .profile-track-right {
+  display: flex;
+  align-items: center;
+}
+
+.profile-track-page .profile-track-right img {
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 26px 48px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.profile-track-page .profile-track-comments-block {
+  position: relative;
+  margin-top: 28px;
+  padding: 28px;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at top right, rgba(217, 154, 188, 0.08), transparent 28%),
+    linear-gradient(135deg, rgba(34, 20, 30, 0.92), rgba(17, 10, 16, 0.94));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 22px 54px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.profile-track-page .profile-track-comments-total {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.profile-track-page .profile-track-comments-block h2 {
+  margin: 0 0 18px;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+.profile-track-page .profile-track-comment-form {
+  margin-bottom: 22px;
+}
+
+.profile-track-page .profile-track-comment-form textarea {
+  min-height: 118px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.profile-track-page .profile-track-comment-form textarea:focus {
+  border-color: rgba(217, 154, 188, 0.36);
+  box-shadow: 0 0 0 4px rgba(217, 154, 188, 0.08);
+}
+
+.profile-track-page .profile-track-comment-form button {
+  min-width: 156px;
+  background: linear-gradient(135deg, #d99abc, #b07497);
+  box-shadow:
+    0 14px 30px rgba(176, 116, 151, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.profile-track-page .profile-track-comment {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.profile-track-page .profile-track-comment + .profile-track-comment {
+  margin-top: 12px;
+}
+
+.profile-track-page .profile-track-comment-actions button:hover {
+  color: #fff;
+}
+
+.profile-track-page .profile-track-empty,
+.profile-track-page .profile-track-error {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 900px) {
+  .profile-track-page .profile-track-main {
+    gap: 24px;
+    padding: 24px;
+  }
+
+  .profile-track-page .profile-track-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-track-page .profile-track-right {
+    max-width: 360px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .profile-track-page::before {
+    inset: 0 0 auto;
+  }
+
+  .profile-track-page .profile-track-play-btn {
+    width: 100%;
+    height: 74px;
+    border-radius: 20px;
+    flex-direction: row;
+  }
+
+  .profile-track-page .profile-track-header {
+    gap: 18px;
+  }
+
+  .profile-track-page .profile-track-comments-total {
+    position: static;
+    margin-bottom: 16px;
+    width: fit-content;
+  }
+
+  .profile-track-page .profile-track-comment-form textarea {
+    min-height: 96px;
+  }
+}

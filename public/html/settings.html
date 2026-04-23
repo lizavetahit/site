@@ -1,104 +1,51 @@
-<!DOCTYPE html>
-<html lang="ru">
+<div class="settings-page">
+  <div class="settings-page-container">
+    <h1 class="settings-page-title">Настройки</h1>
 
-<script src="https://w.soundcloud.com/player/api.js"></script>
-<head>
+    <div class="settings-page-grid">
+      <div onclick="openSettings('archive')" class="settings-page-card">
+        <i class="fa-solid fa-box-archive"></i>
+        <span>Архив</span>
+      </div>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <div onclick="openSettings('privacy')" class="settings-page-card">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Конфиденциальность</span>
+      </div>
 
-<title>Настройки</title>
+      <div onclick="openSettings('saved')" class="settings-page-card">
+        <i class="fa-solid fa-bookmark"></i>
+        <span>Сохранённые</span>
+      </div>
 
-<link rel="stylesheet" href="/styles/base.css">
-<link rel="stylesheet" href="/styles/navbar.css">
-<link rel="stylesheet" href="/styles/player.css">
-<link rel="stylesheet" href="/styles/style.css">
-<link rel="stylesheet" href="/styles/settings.css">
-<link rel="stylesheet" href="/styles/privacy.css">
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-</head>
-
-<body>
-<div class="video-background">
-  <video autoplay muted loop playsinline id="background-video">
-    <source src="/images/bg.mp4" type="video/mp4">
-  </video>
+      <div onclick="logout()" class="settings-page-card settings-page-card-danger">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Выйти из аккаунта</span>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div id="navbar"></div>
-<div id="player"></div>
-
-<div class="settings-container">
-
-<h1 class="settings-title">Настройки</h1>
-
-<div class="settings-grid">
-
-  <div onclick="openSettings('archive')" class="settings-card">
-    <i class="fa-solid fa-box-archive"></i>
-    <span>Архив</span>
-  </div>
-
-  <div onclick="openSettings('privacy')" class="settings-card">
-    <i class="fa-solid fa-shield-halved"></i>
-    <span>Конфиденциальность</span>
-  </div>
-
-  <div onclick="openSettings('saved')" class="settings-card">
-    <i class="fa-solid fa-bookmark"></i>
-    <span>Сохранённые</span>
-  </div>
-
-  <div onclick="logout()" class="settings-card danger">
-    <i class="fa-solid fa-right-from-bracket"></i>
-    <span>Выйти из аккаунта</span>
-  </div>
-
-</div>
-
-</div>
-
-<script src="/js/navbar.js"></script>
-<script src="/js/player.js"></script>
-<script src="/js/settings.js"></script>
-
-
-<div id="settingsModal" class="settings-modal">
-
-  <div class="settings-modal-content">
-
-    <div class="settings-modal-header">
+<div id="settingsModal" class="settings-page-modal">
+  <div class="settings-page-modal-content">
+    <div class="settings-page-modal-header">
       <h2 id="modalTitle">Заголовок</h2>
-      <button onclick="closeSettings()">&times;</button>
+      <button type="button" class="settings-page-modal-close" onclick="closeSettings()">&times;</button>
     </div>
 
-    <div class="settings-modal-body" id="modalBody">
+    <div class="settings-page-modal-body" id="modalBody">
       Контент
     </div>
-
   </div>
-
 </div>
 
-<!-- 🔥 VIEW POST MODAL -->
-<div id="viewPostModal" class="settings-modal">
-
-  <div class="settings-modal-content">
-
-    <div class="settings-modal-header">
+<div id="viewPostModal" class="settings-page-modal">
+  <div class="settings-page-modal-content">
+    <div class="settings-page-modal-header">
       <h2>Пост</h2>
-      <button onclick="closeViewPost()">&times;</button>
+      <button type="button" class="settings-page-modal-close" onclick="closeViewPost()">&times;</button>
     </div>
 
-    <div id="viewPostBody"></div>
-
+    <div id="viewPostBody" class="settings-page-view-post-body"></div>
   </div>
-
 </div>
-
-</body>
-
-</html>

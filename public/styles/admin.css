@@ -1,22 +1,23 @@
-.admin-container {
+.admin-page .admin-container {
   max-width: 900px;
   margin: 120px auto 40px;
   padding: 0 20px;
+  position: relative;
+  z-index: 1;
 }
 
-.admin-title {
+.admin-page .admin-title {
   font-size: 32px;
   margin-bottom: 25px;
+  color: white;
 }
 
-/* 🔍 ПОИСК */
-
-.admin-search {
+.admin-page .admin-search {
   position: relative;
   margin-bottom: 25px;
 }
 
-#adminSearch {
+.admin-page #adminSearch {
   width: 100%;
   padding: 14px 16px;
   border-radius: 12px;
@@ -25,18 +26,21 @@
   color: white;
   outline: none;
   font-size: 15px;
+  box-sizing: border-box;
 }
 
-#adminSearch:focus {
+.admin-page #adminSearch:focus {
   border-color: #c9249a;
   box-shadow: 0 0 0 1px rgba(201,36,154,0.3);
 }
 
-/* 🔥 dropdown */
+.admin-page #adminSearch::placeholder {
+  color: rgba(255,255,255,0.45);
+}
 
-#adminSearchResults {
+.admin-page #adminSearchResults {
   position: absolute;
-  top: 110%;
+  top: calc(100% + 10px);
   left: 0;
   width: 100%;
   background: rgba(20, 10, 30, 0.95);
@@ -45,90 +49,110 @@
   overflow: hidden;
   display: none;
   z-index: 100;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
 }
 
-.admin-search-item {
+.admin-page .admin-search-item {
   padding: 12px 16px;
   cursor: pointer;
   transition: 0.2s;
   border-bottom: 1px solid rgba(255,255,255,0.05);
+  color: white;
 }
 
-.admin-search-item:hover {
+.admin-page .admin-search-item:last-child {
+  border-bottom: none;
+}
+
+.admin-page .admin-search-item:hover {
   background: rgba(255,255,255,0.05);
 }
 
-/* 👥 USERS */
-
-.users-list {
+.admin-page .users-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-.user-row {
+.admin-page .user-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
+  gap: 18px;
   padding: 16px 18px;
-
   border-radius: 14px;
-
   background: rgba(60, 30, 60, 0.5);
   border: 1px solid rgba(255,255,255,0.05);
-
   transition: 0.2s;
 }
 
-.user-row:hover {
+.admin-page .user-row:hover {
   border-color: #c9249a;
   box-shadow: 0 0 0 1px rgba(201,36,154,0.15);
 }
 
-/* 👤 инфа */
-
-.user-info {
+.admin-page .user-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
-.user-name {
+.admin-page .user-name {
   font-size: 16px;
   font-weight: 500;
+  color: white;
+  word-break: break-word;
 }
 
-.user-tag {
+.admin-page .user-tag {
   font-size: 13px;
   color: rgba(255,255,255,0.5);
+  word-break: break-word;
 }
 
-/* 🎯 роли */
-
-.role-select {
+.admin-page .role-select {
   padding: 8px 10px;
   border-radius: 8px;
   background: rgba(0,0,0,0.3);
   color: white;
   border: 1px solid rgba(255,255,255,0.1);
   cursor: pointer;
+  outline: none;
 }
 
-.role-select:focus {
-  outline: none;
+.admin-page .role-select:focus {
   border-color: #c9249a;
 }
 
-/* 🔥 роли цвета */
-
-.role-admin {
+.admin-page .role-admin {
   color: #ff4d6d;
 }
 
-.role-judge {
+.admin-page .role-judge {
   color: #8b5cf6;
 }
 
-.role-user {
+.admin-page .role-user {
   color: #aaa;
+}
+
+@media (max-width: 700px) {
+  .admin-page .admin-container {
+    margin: 100px auto 30px;
+    padding: 0 14px;
+  }
+
+  .admin-page .admin-title {
+    font-size: 28px;
+  }
+
+  .admin-page .user-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-page .role-select {
+    width: 100%;
+  }
 }

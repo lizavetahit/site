@@ -33,7 +33,9 @@ function normalizeTelegram(value) {
   const telegram = value.trim();
 
   if (telegram.startsWith("https://t.me/")) return telegram;
-  if (telegram.startsWith("http://t.me/")) return telegram.replace("http://", "https://");
+  if (telegram.startsWith("http://t.me/")) {
+    return telegram.replace("http://", "https://");
+  }
   if (telegram.startsWith("@")) return `https://t.me/${telegram.slice(1)}`;
   if (telegram.includes("t.me/")) return normalizeUrl(telegram);
 
@@ -100,84 +102,94 @@ async function loadProfile() {
   clearMessages();
 
   try {
-    const params = new URLSearchParams(window.location.search)
-const id = params.get("id")
+    const params = new URLSearchParams(window.location.search);
+    const tag = window.__profileTag || params.get("tag");
 
-let url = "/profile"
+    let url = "/api/profile";
+    if (tag) {
+      url += `?tag=${tag}`;
+    }
 
-if (id) {
-  url += `?id=${id}`
-}
-
-const res = await fetch(url, {
-  headers: {
-    Authorization: "Bearer " + token
-  }
-});
+    const res = await fetch(url, {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    });
 
     if (!res.ok) {
       throw new Error("Ошибка загрузки профиля");
     }
 
     const user = await res.json();
-    fillProfileEditor(user);
+    window.currentProfile = user;
 
-    if (!user.email) {
-  const username = document.getElementById("username");
-  username.innerHTML 
-  }
+    if (typeof fillProfileEditor === "function") {
+      fillProfileEditor(user);
+    }
 
     setText("username", user.username);
-    if (!user.email) {
-  const usernameEl = document.getElementById("username");
-  usernameEl.innerHTML
-}
-    setText("usernameTag", user.username_tag ? "@" + user.username_tag : "")
-    if (user.email) {
-  setText("email", user.email);
-  } else {
-  setText("email", "Telegram аккаунт");
-  }
-    const bioEl = document.getElementById("bio");
+    setText("usernameTag", user.username_tag ? "@" + user.username_tag : "");
 
-if (!user.bio || user.bio.trim() === "") {
-  bioEl.style.display = "none";
-} else {
-  bioEl.style.display = "block";
-  bioEl.innerText = user.bio;
-}
+    const bioEl = document.getElementById("bio");
+    if (!bioEl) return user;
+
+    if (!user.bio || user.bio.trim() === "") {
+      bioEl.style.display = "none";
+    } else {
+      bioEl.style.display = "block";
+      bioEl.innerText = user.bio;
+    }
 
     let avatar = user.avatar;
+    if (!avatar || avatar === "" || avatar === "null") {
+      avatar = "/images/default-avatar.jpg";
+    }
 
-if (!avatar || avatar === "" || avatar === "null") {
-  avatar = "/images/default-avatar.jpg";
-}
+    const avatarEl = document.getElementById("avatar");
+    if (avatarEl) {
+      avatarEl.src = avatar + "?t=" + Date.now();
+    }
 
-document.getElementById("avatar").src = avatar + "?t=" + Date.now();
+    const editUsernameEl = document.getElementById("editUsername");
+    const editBioEl = document.getElementById("editBio");
+    const editAvatarEl = document.getElementById("editAvatar");
+    const editSoundcloudEl = document.getElementById("editSoundcloud");
+    const editInstagramEl = document.getElementById("editInstagram");
+    const editTwitterEl = document.getElementById("editTwitter");
+    const editTelegramEl = document.getElementById("editTelegram");
+    const editWebsiteEl = document.getElementById("editWebsite");
+    const editUsernameTagEl = document.getElementById("editUsernameTag");
+    const bioCount = document.getElementById("bioCount");
 
-    document.getElementById("editUsername").value = user.username || "";
-    document.getElementById("editBio").value = user.bio || "";
-    document.getElementById("editAvatar").value = user.avatar || "";
-    document.getElementById("editSoundcloud").value = user.soundcloud || "";
-    document.getElementById("editInstagram").value = user.instagram || "";
-    document.getElementById("editTwitter").value = user.twitter || "";
-    document.getElementById("editTelegram").value = user.telegram || "";
-    document.getElementById("editWebsite").value = user.website || "";
+    if (editUsernameEl) editUsernameEl.value = user.username || "";
+    if (editUsernameTagEl) editUsernameTagEl.value = user.username_tag || "";
+    if (editBioEl) editBioEl.value = user.bio || "";
+    if (bioCount && editBioEl) bioCount.textContent = editBioEl.value.length;
+    if (editAvatarEl) editAvatarEl.value = user.avatar || "";
+    if (editSoundcloudEl) editSoundcloudEl.value = user.soundcloud || "";
+    if (editInstagramEl) editInstagramEl.value = user.instagram || "";
+    if (editTwitterEl) editTwitterEl.value = user.twitter || "";
+    if (editTelegramEl) editTelegramEl.value = user.telegram || "";
+    if (editWebsiteEl) editWebsiteEl.value = user.website || "";
 
     renderSocialLinks(user);
-    await loadPosts();
-    await loadTracks();
+
+    await loadFollowCounts(user.id);
+    await initFollowSystem();
+
+    return user;
   } catch (error) {
     console.error(error);
-    setText("profileError", "");
+    setText("profileError", "Не удалось загрузить профиль");
+    return null;
   }
 }
 
-function openEdit() {
-if(!isMyProfile()){
-  alert("Это не твой профиль 😈");
-  return;
-}
+async function openEdit() {
+  if (!(await isMyProfileAsync())) {
+    alert("Это не твой профиль 😈");
+    return;
+  }
 
   const modal = document.getElementById("editModal");
   if (modal) modal.style.display = "block";
@@ -195,31 +207,30 @@ function editUsername() {
 
   if (!editBox || !usernameInput || !username) return;
 
-  // 🔥 если уже открыт — закрываем
-  if (!editBox.classList.contains("hidden")) {
-    editBox.classList.add("hidden");
+  if (!editBox.classList.contains("profile-hidden")) {
+    editBox.classList.add("profile-hidden");
     return;
   }
 
-  // иначе открываем
   setText("usernameError", "");
   usernameInput.value = username.innerText.trim();
-  editBox.classList.remove("hidden");
+  editBox.classList.remove("profile-hidden");
   usernameInput.focus();
 }
 
 function cancelUsernameEdit() {
   const editBox = document.getElementById("usernameEditBox");
   setText("usernameError", "");
-  if (editBox) editBox.classList.add("hidden");
+  if (editBox) editBox.classList.add("profile-hidden");
 }
 
 async function saveUsername() {
-  if(!isMyProfile()){
-  alert("Это не твой профиль 😈");
-  return;
-}
-  const username = document.getElementById("usernameInput").value.trim();
+  if (!(await isMyProfileAsync())) {
+    alert("Это не твой профиль 😈");
+    return;
+  }
+
+  const username = document.getElementById("usernameInput")?.value.trim() || "";
 
   setText("usernameError", "");
   setText("profileError", "");
@@ -252,7 +263,9 @@ async function saveUsername() {
     }
 
     document.getElementById("username").innerText = data.username || username;
-    document.getElementById("editUsername").value = data.username || username;
+    const editUsernameEl = document.getElementById("editUsername");
+    if (editUsernameEl) editUsernameEl.value = data.username || username;
+
     cancelUsernameEdit();
   } catch (error) {
     console.error(error);
@@ -261,37 +274,32 @@ async function saveUsername() {
 }
 
 async function saveProfile() {
-
-  if(!isMyProfile()){
-  alert("Это не твой профиль 😈");
-  return;
-}
+  if (!(await isMyProfileAsync())) {
+    alert("Это не твой профиль 😈");
+    return;
+  }
 
   clearMessages();
 
-  const username = document.getElementById("editUsername").value.trim();
-  const bio = document.getElementById("editBio").value.trim();
-  const avatar = document.getElementById("editAvatar").value || "";
-  const soundcloud = document.getElementById("editSoundcloud").value.trim();
-  const instagram = document.getElementById("editInstagram").value.trim();
-  const twitter = document.getElementById("editTwitter").value.trim();
-  const telegram = document.getElementById("editTelegram").value.trim();
-  const website = document.getElementById("editWebsite").value.trim();
-  const username_tag = document.getElementById("editUsernameTag").value.trim();
+  const username = document.getElementById("editUsername")?.value.trim() || "";
+  const username_tag = document.getElementById("editUsernameTag")?.value.trim() || "";
+  const bio = document.getElementById("editBio")?.value.trim() || "";
+  const soundcloud = document.getElementById("editSoundcloud")?.value.trim() || "";
+  const instagram = document.getElementById("editInstagram")?.value.trim() || "";
+  const telegram = document.getElementById("editTelegram")?.value.trim() || "";
+  const website = document.getElementById("editWebsite")?.value.trim() || "";
 
   if (!username) {
     setText("profileError", "Ник не может быть пустым");
     return;
   }
 
-  // ограничение био
   if (bio.length > 200) {
     setText("profileError", "Описание максимум 200 символов");
     return;
   }
 
   try {
-
     const res = await fetch("/update-profile", {
       method: "PUT",
       headers: {
@@ -306,15 +314,19 @@ async function saveProfile() {
         instagram,
         telegram,
         website
-})
+      })
     });
 
     const data = await res.json();
 
     if (!res.ok) {
-
       if (data.error === "username_taken") {
         setText("profileError", "Этот ник уже используется");
+        return;
+      }
+
+      if (data.error === "username_tag_taken") {
+        setText("profileError", "Этот username уже занят");
         return;
       }
 
@@ -326,336 +338,256 @@ async function saveProfile() {
     setText("profileSuccess", "Профиль сохранён");
 
     await loadProfile();
-
+    await handleProfileUI();
+    if (typeof loadNavbarUser === "function") {
+      await loadNavbarUser();
+    }
   } catch (error) {
-
     console.error(error);
     setText("profileError", "Не удалось сохранить профиль");
-
   }
-
 }
 
-
-function initProfileUser(){
-  loadProfile()
+async function initProfileUser() {
+  const data = await loadProfile();
+  window.currentProfile = data;
 }
 
-async function loadTracks() {
+window.openEdit = openEdit;
+window.closeEdit = closeEdit;
+window.saveProfile = saveProfile;
+window.editUsername = editUsername;
+window.saveUsername = saveUsername;
+window.cancelUsernameEdit = cancelUsernameEdit;
+window.initProfileUser = initProfileUser;
 
-  const container = document.getElementById("tracksContainer")
-  if (!container) return
+async function getProfileId() {
+  const params = new URLSearchParams(window.location.search);
+  const tag = window.__profileTag || params.get("tag");
 
-  const params = new URLSearchParams(window.location.search)
-  const id = params.get("id")
-
-  let url = "/user-tracks"
-  if (id) url += "?id=" + id
+  let url = "/api/profile";
+  if (tag) url += "?tag=" + tag;
 
   const res = await fetch(url, {
-    headers: {
-      Authorization: "Bearer " + token
-    }
-  })
+    headers: { Authorization: "Bearer " + token }
+  });
 
-  const tracks = await res.json()
-
-  container.innerHTML = ""
-
-  tracks.forEach(track => {
-    container.innerHTML += `
-      <div class="track-card">
-
-        <img src="${track.cover || '/images/default-avatar.jpg'}" class="track-cover">
-
-        <div class="track-info">
-          <div class="track-title">${track.title}</div>
-          <div class="track-artist">${track.artist || "Unknown"}</div>
-        </div>
-
-        <button class="track-play"
-          onclick="playTrackGlobal({
-            title: '${track.title}',
-            artist: '${track.artist}',
-            cover: '${track.cover}',
-            audioSrc: '${track.audio || ""}',
-            soundcloud: '${track.soundcloud || ""}'
-          })"
-        >
-          <i class="fa-solid fa-play"></i>
-        </button>
-
-      </div>
-    `
-  })
-
+  const user = await res.json();
+  return user.id;
 }
 
-function addTrack(){
+async function initFollowSystem() {
+  const btn = document.getElementById("followBtn");
+  const actions = document.querySelector(".profile-page-actions");
+  if (!btn || !actions) return;
 
-  const title = prompt("Название трека")
-  if(!title) return
+  const token = localStorage.getItem("token");
+  if (!token) return;
 
-  const artist = prompt("Исполнитель")
-  const audio = prompt("Ссылка на mp3 (или пусто)")
-  const soundcloud = prompt("Ссылка на SoundCloud (или пусто)")
-  const cover = prompt("Ссылка на обложку (или пусто)")
+  const params = new URLSearchParams(window.location.search);
+  const tag = window.__profileTag || params.get("tag");
 
-  fetch("/add-user-track",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      Authorization:"Bearer "+token
-    },
-    body: JSON.stringify({
-      title,
-      artist,
-      audio,
-      soundcloud,
-      cover
-    })
-  })
-  .then(res=>res.json())
-  .then(()=>{
-    loadTracks()
-  })
-
-}
-
-function initTrackModal() {
-  const coverInput = document.getElementById("trackCoverInput");
-  const coverPreview = document.getElementById("trackCoverPreview");
-  const coverPlaceholder = document.getElementById("trackCoverPlaceholder");
-
-  const audioInput = document.getElementById("trackAudioInput");
-  const fileName = document.getElementById("trackFileName");
-  const audioPlayer = document.getElementById("trackAudioPlayer");
-  const preview = document.getElementById("trackPreview");
-
-  if (coverInput) {
-    coverInput.onchange = () => {
-      const file = coverInput.files[0];
-      if (!file) return;
-
-      coverPreview.src = URL.createObjectURL(file);
-      coverPreview.style.display = "block";
-      coverPlaceholder.style.display = "none";
-    };
+  if (!tag) {
+    btn.style.setProperty("display", "none", "important");
+    const myId = await getProfileId();
+    await loadFollowCounts(myId);
+    return;
   }
 
-  if (audioInput) {
-    audioInput.onchange = () => {
-      const file = audioInput.files[0];
-      if (!file) return;
-
-      fileName.textContent = file.name;
-      audioPlayer.src = URL.createObjectURL(file);
-      preview.style.display = "block";
-    };
-  }
-}
-
-function resetTrackModal() {
-  const title = document.getElementById("trackTitle");
-  const artist = document.getElementById("trackArtist");
-  const soundcloud = document.getElementById("trackSoundcloud");
-
-  const coverInput = document.getElementById("trackCoverInput");
-  const coverPreview = document.getElementById("trackCoverPreview");
-  const coverPlaceholder = document.getElementById("trackCoverPlaceholder");
-
-  const audioInput = document.getElementById("trackAudioInput");
-  const fileName = document.getElementById("trackFileName");
-  const audioPlayer = document.getElementById("trackAudioPlayer");
-  const preview = document.getElementById("trackPreview");
-
-  const status = document.getElementById("trackStatus");
-
-  if (title) title.value = "";
-  if (artist) artist.value = "";
-  if (soundcloud) soundcloud.value = "";
-
-  if (coverInput) coverInput.value = "";
-  if (coverPreview) {
-    coverPreview.src = "";
-    coverPreview.style.display = "none";
-  }
-  if (coverPlaceholder) {
-    coverPlaceholder.style.display = "flex";
-  }
-
-  if (audioInput) audioInput.value = "";
-  if (fileName) fileName.textContent = "Файл не выбран";
-  if (audioPlayer) {
-    audioPlayer.src = "";
-    audioPlayer.load();
-  }
-  if (preview) preview.style.display = "none";
-
-  if (status) status.textContent = "";
-}
-
-async function submitUserTrack() {
-
-  const title = document.getElementById("trackTitle")?.value.trim()
-  const artist = document.getElementById("trackArtist")?.value.trim()
-
-  const genre = document.getElementById("trackGenre")?.value || ""
-  const producer = document.getElementById("trackProducer")?.value || ""
-  const description = document.getElementById("trackDescription")?.value || ""
-
-  const tags = window.getTrackTags ? window.getTrackTags() : []
-
-  const coverFile = document.getElementById("trackCoverInput")?.files[0] || null
-  const audioFile = document.getElementById("trackAudioInput")?.files[0] || null
-
-  const status = document.getElementById("trackStatus")
-  if (status) status.textContent = ""
-
-  if (!title) {
-    if (status) status.textContent = "Название обязательно"
-    return
-  }
-
-  const formData = new FormData()
-
-  formData.append("title", title)
-  formData.append("artist", artist)
-  formData.append("genre", genre)
-  formData.append("producer", producer)
-  formData.append("description", description)
-  formData.append("tags", JSON.stringify(tags))
-
-  if (coverFile) formData.append("cover", coverFile)
-  if (audioFile) formData.append("audio", audioFile)
+  let myTag = "";
 
   try {
+    const meRes = await fetch("/me", {
+      headers: { Authorization: "Bearer " + token }
+    });
 
-    const res = await fetch("/add-user-track", {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + token
-      },
-      body: formData
-    })
-
-    const data = await res.json().catch(() => ({}))
-
-    if (!res.ok) {
-      if (status) status.textContent = data.error || "Ошибка загрузки"
-      return
-    }
-
-    // 🔥 УСПЕХ
-    if (status) status.textContent = "Трек загружен 🚀"
-
-    closeTrackModal()
-    resetTrackModal()
-    await loadTracks()
-
-  } catch (err) {
-    console.error(err)
-    if (status) status.textContent = "Ошибка сети"
+    const me = await meRes.json();
+    myTag = (me.username_tag || "").toLowerCase();
+  } catch (e) {
+    console.error("me error", e);
   }
 
+  if (tag.toLowerCase() === myTag) {
+    btn.style.setProperty("display", "none", "important");
+    return;
+  }
+
+  actions.style.setProperty("display", "flex", "important");
+  btn.style.setProperty("display", "inline-flex", "important");
+  btn.style.setProperty("visibility", "visible", "important");
+  btn.style.setProperty("opacity", "1", "important");
+
+  const profileId = await getProfileId();
+
+  const statusRes = await fetch(`/follow-status/${profileId}`, {
+    headers: { Authorization: "Bearer " + token }
+  });
+
+  const status = await statusRes.json();
+
+  updateFollowBtn(btn, status.following);
+  await loadFollowCounts(profileId);
+
+  btn.onclick = async () => {
+    const res = await fetch(`/follow/${profileId}`, {
+      method: "POST",
+      headers: { Authorization: "Bearer " + token }
+    });
+
+    const data = await res.json();
+
+    updateFollowBtn(btn, data.following);
+    updateFollowCountsInstant(data.following);
+    await loadFollowCounts(profileId);
+  };
 }
 
-function openTrackModal() {
-  const modal = document.getElementById("trackModal");
-  if (!modal) return;
+function updateFollowBtn(btn, following) {
+  if (following) {
+    btn.innerHTML = '<i class="fa-solid fa-user-minus"></i> Отписаться';
+    btn.classList.add("secondary-btn");
+  } else {
+    btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Подписаться';
+    btn.classList.remove("secondary-btn");
+  }
+}
+
+async function loadFollowCounts(userId) {
+  const token = localStorage.getItem("token");
+
+  const followers = await fetch(`/followers-count/${userId}`, {
+    headers: { Authorization: "Bearer " + token }
+  }).then((r) => r.json());
+
+  const following = await fetch(`/following-count/${userId}`, {
+    headers: { Authorization: "Bearer " + token }
+  }).then((r) => r.json());
+
+  const followersEl = document.getElementById("followersCount");
+  const followingEl = document.getElementById("followingCount");
+
+  const newFollowers = Number(followers.count) || 0;
+  const newFollowing = Number(following.count) || 0;
+
+  animateCount(followersEl, newFollowers);
+  animateCount(followingEl, newFollowing);
+}
+
+const counters = new Map();
+
+function animateCount(el, newValue) {
+  if (!el) return;
+
+  if (counters.has(el)) {
+    cancelAnimationFrame(counters.get(el));
+  }
+
+  const start = Number(el.dataset.value || el.innerText || 0);
+  const duration = 250;
+  const startTime = performance.now();
+
+  function update(time) {
+    const progress = Math.min((time - startTime) / duration, 1);
+    const value = Math.round(start + (newValue - start) * progress);
+
+    el.innerText = value;
+    el.dataset.value = value;
+
+    if (progress < 1) {
+      const id = requestAnimationFrame(update);
+      counters.set(el, id);
+    } else {
+      el.dataset.value = newValue;
+      counters.delete(el);
+      el.style.transform = "scale(1.15)";
+      el.style.color = "#ff4d9d";
+
+      setTimeout(() => {
+        el.style.transform = "scale(1)";
+        el.style.color = "";
+      }, 180);
+    }
+  }
+
+  const id = requestAnimationFrame(update);
+  counters.set(el, id);
+}
+
+async function openFollowModal(type) {
+  const modal = document.getElementById("followModal");
+  const list = document.getElementById("followList");
+  const title = document.getElementById("followTitle");
+
+  if (!modal || !list || !title) return;
 
   modal.style.display = "flex";
-  resetTrackModal();
-}
+  list.innerHTML = "Загрузка...";
 
-function closeTrackModal() {
-  const modal = document.getElementById("trackModal");
-  if (!modal) return;
+  const targetId = await getProfileId();
 
-  modal.style.display = "none";
-}
+  let url = "";
 
+  if (type === "followers") {
+    title.innerText = "Подписчики";
+    url = `/followers/${targetId}`;
+  } else {
+    title.innerText = "Подписки";
+    url = `/following/${targetId}`;
+  }
 
+  const res = await fetch(url);
+  const users = await res.json();
 
-function initTrackTags(){
+  list.innerHTML = "";
 
-  const container = document.getElementById("trackTagsContainer")
-  const input = document.getElementById("trackTagsInput")
-
-  if(!container || !input) return
-
-  let tags = []
-
-  input.addEventListener("keydown", (e) => {
-
-    if(e.key === "Enter"){
-      e.preventDefault()
-
-      const value = input.value.trim().toLowerCase()
-      if(!value || tags.includes(value)) return
-
-      tags.push(value)
-
-      const tag = document.createElement("div")
-      tag.className = "tag"
-
-      const span = document.createElement("span")
-      span.textContent = value
-
-      const remove = document.createElement("span")
-      remove.textContent = "×"
-      remove.className = "tag-remove"
-
-      remove.onclick = () => {
-        tag.remove()
-        tags = tags.filter(t => t !== value)
-      }
-
-      tag.appendChild(span)
-      tag.appendChild(remove)
-
-      container.insertBefore(tag, input)
-
-      input.value = ""
-    }
-
-  })
-
-  // 👉 делаем доступ к тегам глобально
-  window.getTrackTags = () => tags
-
-}
-
-function loadMentions() {
-
-  const container = document.getElementById("mentionsContainer")
-  if (!container) return
-
-  const mentions = [
-    "DJ Alex упомянул тебя в посте",
-    "Producer123 оценил твой трек 🔥"
-  ]
-
-  container.innerHTML = ""
-
-  mentions.forEach(text => {
-    container.innerHTML += `
-      <div class="mention-card">
-        ${text}
+  users.forEach((user) => {
+    list.innerHTML += `
+      <div class="follow-item" onclick="goToUserProfile('${user.username_tag}')">
+        <img class="follow-avatar" src="${user.avatar || "/images/default-avatar.jpg"}">
+        <div class="follow-info">
+          <div class="follow-name">${user.username}</div>
+          <div class="follow-tag">@${user.username_tag}</div>
+        </div>
+        <div class="follow-action">
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
       </div>
-    `
-  })
-
+    `;
+  });
 }
 
-window.openEdit = openEdit
-window.closeEdit = closeEdit
-window.saveProfile = saveProfile
+function closeFollowModal() {
+  const modal = document.getElementById("followModal");
+  if (modal) modal.style.display = "none";
+}
 
-window.editUsername = editUsername
-window.saveUsername = saveUsername
-window.cancelUsernameEdit = cancelUsernameEdit
+function goToUserProfile(tag) {
+  navigate(`/${tag}`);
+}
 
-window.openTrackModal = openTrackModal
-window.closeTrackModal = closeTrackModal
-window.submitUserTrack = submitUserTrack
+function updateFollowCountsInstant(isFollowing) {
+  const followersEl = document.getElementById("followersCount");
+
+  let current = Number(followersEl?.dataset.value || followersEl?.innerText || 0);
+
+  if (isFollowing) {
+    animateCount(followersEl, current + 1);
+  } else {
+    animateCount(followersEl, Math.max(0, current - 1));
+  }
+}
+
+const bioInput = document.getElementById("editBio");
+const bioCount = document.getElementById("bioCount");
+
+if (bioInput && bioCount) {
+  bioInput.addEventListener("input", () => {
+    bioCount.textContent = bioInput.value.length;
+  });
+}
+
+window.openFollowModal = openFollowModal;
+window.closeFollowModal = closeFollowModal;
+window.goToUserProfile = goToUserProfile;
+window.initFollowSystem = initFollowSystem;
+window.loadFollowCounts = loadFollowCounts;

@@ -1,109 +1,130 @@
-const form=document.getElementById("loginForm")
-const error=document.getElementById("error")
+function initLoginPage() {
+  const loginForm = document.getElementById("loginForm");
+  const loginError = document.getElementById("error");
+  const loginInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const tgAvatar = document.getElementById("tgAvatar");
 
-form.addEventListener("submit",async(e)=>{
+  function renderTelegramWidget() {
+  const container = document.querySelector(".telegram-widget-wrap");
+  if (!container) return;
 
-e.preventDefault()
+  container.innerHTML = "";
 
-const login=document.getElementById("email").value.trim()
-const password=document.getElementById("password").value
+  const script = document.createElement("script");
+  script.src = "https://telegram.org/js/telegram-widget.js?22";
+  script.async = true;
 
-const res=await fetch("/login",{
+  script.setAttribute("data-telegram-login", "ritmoriaauthBot");
+  script.setAttribute("data-size", "large");
+  script.setAttribute("data-userpic", "true");
+  script.setAttribute("data-radius", "20");
+  script.setAttribute("data-request-access", "write");
+  script.setAttribute("data-onauth", "onTelegramAuth(user)");
 
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({login,password})
-
-})
-
-if(!res.ok){
-
-error.innerText="Неверный email или пароль"
-return
-
+  container.appendChild(script);
 }
 
-const data=await res.json()
+  if (!loginForm) return;
+  if (loginForm.dataset.authInitialized === "true") return;
+  loginForm.dataset.authInitialized = "true";
 
-localStorage.setItem("token",data.token)
+  function setError(message = "") {
+    if (loginError) {
+      loginError.innerText = message;
+    }
+  }
 
-window.location.href="/html/index.html"
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    setError("");
 
-})
+    const login = loginInput?.value.trim() || "";
+    const password = passwordInput?.value || "";
 
-function loginWithTelegram() {
+    if (!login || !password) {
+      setError("Заполни email/@username и пароль");
+      return;
+    }
 
-  window.Telegram.Login.auth(
-    {
-      bot_id: "ТВОЙ_BOT_ID",
-      request_access: true
-    },
-    async (data) => {
-
-      if (!data) return;
-
-      // 👉 МЕНЯЕМ КНОПКУ КАК НА СКРИНЕ
-      const text = document.getElementById("tgLoginText");
-      const avatar = document.getElementById("tgAvatar");
-
-      if (text) {
-        text.innerText = "Войти как " + (data.first_name || data.username);
-      }
-
-      if (avatar && data.photo_url) {
-        avatar.src = data.photo_url;
-        avatar.classList.remove("hidden");
-      }
-
-      // 👉 отправка на сервер
-      const res = await fetch("/telegram-login", {
+    try {
+      const response = await fetch("/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify({ login, password })
       });
 
-      const result = await res.json();
+      const data = await response.json().catch(() => ({}));
 
-      if (result.token) {
-        localStorage.setItem("token", result.token);
-        window.location.href = "/html/profile.html";
+      if (!response.ok) {
+        setError(data?.error || "Неверный email или пароль");
+        return;
       }
 
-    }
-  );
+      if (!data?.token) {
+        setError("Сервер не вернул токен");
+        return;
+      }
 
-}
-
-async function onTelegramAuth(user) {
-  try {
-    const res = await fetch("/telegram-login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(user)
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error(data);
-      return;
-    }
-
-    if (data.token) {
       localStorage.setItem("token", data.token);
-      window.location.href = "/html/profile.html";
-    }
-  } catch (err) {
-    console.error("Telegram login error:", err);
-  }
+
+// 🔥 ОБНОВЛЯЕМ NAVBAR
+if (window.loadNavbarUser) {
+  await window.loadNavbarUser();
 }
 
-window.onTelegramAuth = onTelegramAuth;
+navigate("/");
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("Ошибка сервера");
+    }
+  });
+
+  window.onTelegramAuth = async function (user) {
+    try {
+      if (tgAvatar && user?.photo_url) {
+        tgAvatar.src = user.photo_url;
+        tgAvatar.classList.remove("auth-hidden");
+      }
+
+      const response = await fetch("/telegram-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(user)
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        console.error("Telegram login failed:", data);
+        setError(data?.error || "Ошибка входа через Telegram");
+        return;
+      }
+
+      if (!data?.token) {
+        setError("Не удалось войти через Telegram");
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+
+if (window.loadNavbarUser) {
+  await window.loadNavbarUser();
+}
+
+navigate("/");
+      
+    } catch (error) {
+      console.error("Telegram login error:", error);
+      setError("Ошибка входа через Telegram");
+    }
+  };
+
+  renderTelegramWidget();
+}
+
+window.initLoginPage = initLoginPage;

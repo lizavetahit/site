@@ -1,77 +1,61 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
+<div class="privacy-page">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <h1 class="privacy-page-title">Конфиденциальность аккаунта</h1>
 
-<title>Конфиденциальность</title>
+  <div class="privacy-card">
+    <div class="privacy-block">
 
-<link rel="stylesheet" href="/styles/style.css">
-<link rel="stylesheet" href="/styles/privacy.css">
+      <div class="privacy-panel">
+        <h3>Смена пароля</h3>
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+        <input
+          type="password"
+          id="currentPassword"
+          class="privacy-input"
+          placeholder="Текущий пароль"
+        >
 
-</head>
+        <input
+          type="password"
+          id="newPassword"
+          class="privacy-input"
+          placeholder="Новый пароль"
+        >
 
-<body>
-<div class="video-background">
-  <video autoplay muted loop playsinline id="background-video">
-    <source src="/images/bg.mp4" type="video/mp4">
-  </video>
-</div>
+        <button onclick="changePassword()" class="privacy-main-btn">
+          Сменить пароль
+        </button>
+      </div>
 
-<div id="navbar"></div>
+      <div class="privacy-divider"></div>
 
-<div class="privacy-container">
+      <div class="privacy-panel">
+        <h3>Смена почты</h3>
 
-<h1>Конфиденциальность аккаунта</h1>
+        <input
+          type="email"
+          id="newEmail"
+          class="privacy-input"
+          placeholder="Новая почта"
+        >
 
-<div class="privacy-section">
+        <button onclick="changeEmail()" class="privacy-main-btn">
+          Сменить почту
+        </button>
+      </div>
 
-<h3>Смена пароля</h3>
+      <div class="privacy-divider"></div>
 
-<input type="password" id="currentPassword" placeholder="Текущий пароль">
+      <div class="privacy-panel privacy-panel-danger">
+        <h3>Удаление аккаунта</h3>
+        <p class="privacy-danger-text">Это действие нельзя отменить.</p>
 
-<input type="password" id="newPassword" placeholder="Новый пароль">
+        <button onclick="deleteAccount()" class="privacy-danger-btn">
+          Удалить аккаунт
+        </button>
+      </div>
 
-<button onclick="changePassword()" class="main-btn">
-Сменить пароль
-</button>
-
-</div>
-
-
-<div class="privacy-section">
-
-<h3>Смена почты</h3>
-
-<input type="email" id="newEmail" placeholder="Новая почта">
-
-<button onclick="changeEmail()" class="main-btn">
-Сменить почту
-</button>
-
-</div>
-
-
-<div class="privacy-section danger">
-
-<h3>Удаление аккаунта</h3>
-
-<p>Это действие нельзя отменить.</p>
-
-<button onclick="deleteAccount()" class="danger-btn">
-Удалить аккаунт
-</button>
+    </div>
+  </div>
 
 </div>
-
-</div>
-
-<script src="/js/navbar.js"></script>
-<script src="/js/privacy.js"></script>
-
-</body>
-</html>

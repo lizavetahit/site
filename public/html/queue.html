@@ -1,78 +1,15 @@
-<!DOCTYPE html>
-<html lang="ru">
-
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Очередь треков</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="/styles/base.css">
-<link rel="stylesheet" href="/styles/navbar.css">
-<link rel="stylesheet" href="/styles/player.css">
-<link rel="stylesheet" href="/styles/style.css">
-<link rel="stylesheet" href="/styles/queue.css">
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-<script src="https://w.soundcloud.com/player/api.js"></script>
-
-</head>
-
-<body>
-
-<!-- 🔥 ВИДЕО ФОН -->
-<div class="video-background">
-  <video autoplay muted loop playsinline id="background-video">
-    <source src="/images/bg.mp4" type="video/mp4">
-  </video>
-</div>
-
-<!-- 🔥 NAVBAR -->
-<div id="navbar"></div>
-
-<script>
-fetch("/html/components/navbar.html")
-.then(res => res.text())
-.then(data => {
-  document.getElementById("navbar").innerHTML = data
-
-  const script = document.createElement("script")
-  script.src = "/js/navbar.js"
-  document.body.appendChild(script)
-})
-</script>
-
-<!-- 🔥 PLAYER -->
-<div id="player"></div>
-<script src="/js/player.js"></script>
-
-<!-- 🔥 КОНТЕНТ -->
 <div class="queue-page">
-
   <div class="queue-header">
-  <h1 class="queue-title">Очередь треков</h1>
-  <div id="queueStatusText" class="queue-status">загрузка...</div>
-</div>
+    <h1 class="queue-title">Очередь треков</h1>
+    <div id="queueStatusText" class="queue-status">загрузка...</div>
+  </div>
 
-  <div id="adminControls" class="queue-admin hidden">
-  <button id="openQueue">Открыть</button>
-  <button id="pauseQueue">Пауза</button>
-  <button id="resumeQueue">Возобновить</button>
-  <button id="closeQueue" class="danger">Закрыть</button>
-</div>
+  <div id="adminControls" class="queue-admin queue-hidden">
+    <button id="openQueue" class="queue-admin-btn">Открыть</button>
+    <button id="pauseQueue" class="queue-admin-btn">Пауза</button>
+    <button id="resumeQueue" class="queue-admin-btn">Возобновить</button>
+    <button id="closeQueue" class="queue-admin-btn queue-admin-btn-danger">Закрыть</button>
+  </div>
 
-  <!-- ❗ ВАЖНО: ПУСТОЙ контейнер -->
   <div id="queueList" class="queue-list"></div>
-
 </div>
-
-<!-- 🔥 JS -->
-<script src="/js/queue.js"></script>
-
-</body>
-</html>

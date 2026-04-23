@@ -1,87 +1,134 @@
-const token = localStorage.getItem("token")
-
-
-async function changePassword(){
-
-const currentPassword = document.getElementById("currentPassword").value
-const newPassword = document.getElementById("newPassword").value
-
-const res = await fetch("/change-password",{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-Authorization:"Bearer "+token
-},
-body:JSON.stringify({
-currentPassword,
-newPassword
-})
-})
-
-if(res.ok){
-
-alert("Пароль успешно изменён")
-
-}else{
-
-alert("Ошибка смены пароля")
-
+function getPrivacyToken() {
+  return localStorage.getItem("token") || "";
 }
 
+function getValue(id) {
+  return document.getElementById(id)?.value.trim() || "";
 }
 
-
-
-async function changeEmail(){
-
-const newEmail = document.getElementById("newEmail").value
-
-const res = await fetch("/change-email",{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-Authorization:"Bearer "+token
-},
-body:JSON.stringify({
-email:newEmail
-})
-})
-
-if(res.ok){
-
-alert("Почта изменена")
-
-}else{
-
-alert("Ошибка")
-
+function setLoading(btn, state) {
+  if (!btn) return;
+  btn.disabled = state;
+  btn.style.opacity = state ? "0.6" : "1";
 }
 
+async function changePassword() {
+  const currentPassword = getValue("currentPassword");
+  const newPassword = getValue("newPassword");
+  const btn = event?.target;
+
+  if (!currentPassword || !newPassword) {
+    alert("Заполни все поля");
+    return;
+  }
+
+  setLoading(btn, true);
+
+  try {
+    const res = await fetch("/change-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + getPrivacyToken()
+      },
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+
+    if (!res.ok) {
+      throw new Error();
+    }
+
+    alert("Пароль изменён");
+
+    document.getElementById("currentPassword").value = "";
+    document.getElementById("newPassword").value = "";
+
+  } catch {
+    alert("Ошибка смены пароля");
+  } finally {
+    setLoading(btn, false);
+  }
 }
 
+async function changeEmail() {
+  const newEmail = getValue("newEmail");
+  const btn = event?.target;
 
+  if (!newEmail) {
+    alert("Введите почту");
+    return;
+  }
 
-async function deleteAccount(){
+  setLoading(btn, true);
 
-if(!confirm("Вы точно хотите удалить аккаунт?")) return
+  try {
+    const res = await fetch("/change-email-send-code", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + getPrivacyToken()
+      },
+      body: JSON.stringify({ email: newEmail })
+    });
 
-const res = await fetch("/delete-account",{
-method:"DELETE",
-headers:{
-Authorization:"Bearer "+token
+    if (!res.ok) {
+      throw new Error();
+    }
+
+    alert("Почта изменена");
+
+    document.getElementById("newEmail").value = "";
+
+  } catch {
+    alert("Ошибка смены почты");
+  } finally {
+    setLoading(btn, false);
+  }
 }
-})
 
-if(res.ok){
+async function deleteAccount() {
+  const btn = event?.target;
 
-localStorage.removeItem("token")
+  if (!confirm("Ты точно хочешь удалить аккаунт?")) return;
 
-window.location.href="/html/register.html"
+  setLoading(btn, true);
 
-}else{
+  try {
+    const res = await fetch("/delete-account", {
+      method: "DELETE",
+      headers: {
+        Authorization: "Bearer " + getPrivacyToken()
+      }
+    });
 
-alert("Ошибка удаления аккаунта")
+    if (!res.ok) {
+      throw new Error();
+    }
 
+    localStorage.removeItem("token");
+    navigate("/register");
+
+  } catch {
+    alert("Ошибка удаления аккаунта");
+  } finally {
+    setLoading(btn, false);
+  }
 }
 
-}
+window.changePassword = changePassword;
+window.changeEmail = changeEmail;
+window.deleteAccount = deleteAccount;
+
+window.initPrivacyPage = function () {
+  const root = document.querySelector(".privacy-page");
+
+  if (!root) {
+    console.log("❌ privacy page not found");
+    return;
+  }
+
+  if (!getPrivacyToken()) {
+    navigate("/login");
+    return;
+  }
+};

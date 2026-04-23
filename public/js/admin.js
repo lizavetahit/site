@@ -1,115 +1,124 @@
-// 🔐 ПРОВЕРКА ДОСТУПА
+let adminAllUsers = [];
+let adminSearchBound = false;
 
-async function checkAdminAccess(){
-  const token = localStorage.getItem("token")
+function denyAccess(text) {
+  const app = document.getElementById("app");
 
-  if(!token){
-    denyAccess("Нет доступа")
-    return false
+  if (app) {
+    app.innerHTML = `
+      <div style="
+        color:white;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        height:80vh;
+        font-size:24px;
+        text-align:center;
+        padding:20px;
+      ">
+        ${text}
+      </div>
+    `;
+  }
+}
+
+async function checkAdminAccess() {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    denyAccess("Нет доступа");
+    return false;
   }
 
-  try{
+  try {
     const res = await fetch("/me", {
-      headers:{
+      headers: {
         Authorization: "Bearer " + token
       }
-    })
+    });
 
-    if(!res.ok){
-      denyAccess("Нет доступа")
-      return false
+    if (!res.ok) {
+      denyAccess("Нет доступа");
+      return false;
     }
 
-    const user = await res.json()
+    const user = await res.json();
 
-    if(user.role !== "admin"){
-      denyAccess("У вас нет доступа к этой странице")
-      return false
+    if (user.role !== "admin") {
+      denyAccess("У вас нет доступа к этой странице");
+      return false;
     }
 
-    return true
-
-  }catch(err){
-    denyAccess("Ошибка доступа")
-    return false
+    return true;
+  } catch (err) {
+    console.error("checkAdminAccess error:", err);
+    denyAccess("Ошибка доступа");
+    return false;
   }
 }
 
-function denyAccess(text){
-  document.body.innerHTML = `
-    <div style="
-      color:white;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      font-size:24px;
-    ">
-      ${text}
-    </div>
-  `
-}
+function renderUsers(users) {
+  const container = document.getElementById("usersList");
+  if (!container) return;
 
-// 📦 ДАННЫЕ
-
-let allUsers = []
-
-// 📥 ЗАГРУЗКА ПОЛЬЗОВАТЕЛЕЙ
-
-async function loadUsers() {
-  try{
-    const res = await fetch("/api/users", {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    })
-
-    if(!res.ok){
-      console.error("Ошибка загрузки пользователей")
-      return
-    }
-
-    const users = await res.json()
-
-    allUsers = users
-
-    renderUsers(users)
-
-  }catch(err){
-    console.error("Ошибка:", err)
-  }
-}
-
-// 🎨 РЕНДЕР
-
-function renderUsers(users){
-  const container = document.getElementById("usersList")
-
-  if(!users.length){
-    container.innerHTML = "<div style='opacity:0.6'>Ничего не найдено</div>"
-    return
+  if (!users.length) {
+    container.innerHTML = `<div style="opacity:0.6; color:white;">Ничего не найдено</div>`;
+    return;
   }
 
-  container.innerHTML = users.map(u => `
+  container.innerHTML = users.map((u) => `
     <div class="user-row">
       <div class="user-info">
-        <div class="user-name">${u.username}</div>
-        <div class="user-tag">@${u.username_tag}</div>
+        <div class="user-name">${escapeAdminHtml(u.username || "Без имени")}</div>
+        <div class="user-tag">@${escapeAdminHtml(u.username_tag || "")}</div>
       </div>
 
-      <select class="role-select" onchange="changeRole(${u.id}, this.value)">
+      <select class="role-select" data-user-id="${u.id}">
         <option value="user" ${u.role === "user" ? "selected" : ""}>user</option>
         <option value="judge" ${u.role === "judge" ? "selected" : ""}>judge</option>
         <option value="admin" ${u.role === "admin" ? "selected" : ""}>admin</option>
       </select>
     </div>
-  `).join("")
+  `).join("");
+
+  bindRoleSelects();
 }
 
-// 🔄 СМЕНА РОЛИ
+function escapeAdminHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
-async function changeRole(userId, role){
-  try{
+async function loadUsers() {
+  try {
+    const res = await fetch("/api/users", {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    });
+
+    if (!res.ok) {
+      console.error("Ошибка загрузки пользователей");
+      return;
+    }
+
+    const users = await res.json();
+
+    adminAllUsers = Array.isArray(users) ? users : [];
+    renderUsers(adminAllUsers);
+  } catch (err) {
+    console.error("Ошибка loadUsers:", err);
+  }
+}
+
+async function changeRole(userId, role, selectEl) {
+  const previousRole = adminAllUsers.find((u) => u.id === userId)?.role || "user";
+
+  try {
     const res = await fetch(`/api/users/${userId}/role`, {
       method: "PUT",
       headers: {
@@ -117,82 +126,113 @@ async function changeRole(userId, role){
         Authorization: "Bearer " + localStorage.getItem("token")
       },
       body: JSON.stringify({ role })
-    })
+    });
 
-    if(!res.ok){
-      alert("Ошибка смены роли")
-      return
+    if (!res.ok) {
+      if (selectEl) {
+        selectEl.value = previousRole;
+      }
+      alert("Ошибка смены роли");
+      return;
     }
 
-    // обновляем локально
-    const user = allUsers.find(u => u.id === userId)
-    if(user) user.role = role
-
-  }catch(err){
-    console.error(err)
+    const user = adminAllUsers.find((u) => u.id === userId);
+    if (user) user.role = role;
+  } catch (err) {
+    console.error("changeRole error:", err);
+    if (selectEl) {
+      selectEl.value = previousRole;
+    }
+    alert("Ошибка смены роли");
   }
 }
 
-// 🔍 ПОИСК С ПОДСКАЗКАМИ
+function bindRoleSelects() {
+  const selects = document.querySelectorAll(".role-select");
 
-function initAdminSearch(){
-  const input = document.getElementById("adminSearch")
-  const results = document.getElementById("adminSearchResults")
+  selects.forEach((select) => {
+    if (select.dataset.bound === "true") return;
+    select.dataset.bound = "true";
+
+    select.addEventListener("change", () => {
+      const userId = Number(select.dataset.userId);
+      const role = select.value;
+
+      if (!userId || !role) return;
+      changeRole(userId, role, select);
+    });
+  });
+}
+
+function initAdminSearch() {
+  const input = document.getElementById("adminSearch");
+  const results = document.getElementById("adminSearchResults");
+
+  if (!input || !results || adminSearchBound) return;
+  adminSearchBound = true;
 
   input.addEventListener("input", () => {
-    const q = input.value.toLowerCase().trim()
+    const q = input.value.toLowerCase().trim();
 
-    if(!q){
-      results.style.display = "none"
-      renderUsers(allUsers)
-      return
+    if (!q) {
+      results.style.display = "none";
+      renderUsers(adminAllUsers);
+      return;
     }
 
-    const filtered = allUsers.filter(u =>
-      u.username_tag?.toLowerCase().includes(q)
-    )
+    const filtered = adminAllUsers.filter((u) =>
+      (u.username_tag || "").toLowerCase().includes(q)
+    );
 
-    // dropdown
-    results.innerHTML = filtered.map(u => `
-      <div class="admin-search-item" onclick="selectUser('${u.username_tag}')">
-        @${u.username_tag}
+    results.innerHTML = filtered.map((u) => `
+      <div class="admin-search-item" data-tag="${escapeAdminHtml(u.username_tag || "")}">
+        @${escapeAdminHtml(u.username_tag || "")}
       </div>
-    `).join("")
+    `).join("");
 
-    results.style.display = "block"
+    results.style.display = filtered.length ? "block" : "none";
 
-    renderUsers(filtered)
-  })
+    const items = results.querySelectorAll(".admin-search-item");
+    items.forEach((item) => {
+      item.addEventListener("click", () => {
+        const tag = item.dataset.tag || "";
+        selectUser(tag);
+      });
+    });
 
-  // закрытие
-  document.addEventListener("click", (e)=>{
-    if(!e.target.closest(".admin-search")){
-      results.style.display = "none"
+    renderUsers(filtered);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".admin-search")) {
+      results.style.display = "none";
     }
-  })
+  });
 }
 
-// 🎯 ВЫБОР ИЗ СПИСКА
+function selectUser(tag) {
+  const input = document.getElementById("adminSearch");
+  const results = document.getElementById("adminSearchResults");
 
-function selectUser(tag){
-  const input = document.getElementById("adminSearch")
-  const results = document.getElementById("adminSearchResults")
+  if (input) input.value = tag;
 
-  input.value = tag
+  const filtered = adminAllUsers.filter((u) => u.username_tag === tag);
+  renderUsers(filtered);
 
-  const filtered = allUsers.filter(u => u.username_tag === tag)
-
-  renderUsers(filtered)
-
-  results.style.display = "none"
+  if (results) {
+    results.style.display = "none";
+  }
 }
 
-// 🚀 СТАРТ
+window.selectUser = selectUser;
 
-(async ()=>{
-  const ok = await checkAdminAccess()
-  if(!ok) return
+window.initAdminPage = async function () {
+  const ok = await checkAdminAccess();
+  if (!ok) return;
 
-  await loadUsers()
-  initAdminSearch()
-})()
+  adminAllUsers = [];
+  adminSearchBound = false;
+
+  await loadUsers();
+  initAdminSearch();
+};

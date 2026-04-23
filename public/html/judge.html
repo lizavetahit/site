@@ -1,191 +1,137 @@
-<!doctype html>
-<html lang="ru">
-<head>
-
-  <script src="https://w.soundcloud.com/player/api.js"></script>
- <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="/styles/base.css">
-<link rel="stylesheet" href="/styles/navbar.css">
-<link rel="stylesheet" href="/styles/player.css">
-<link rel="stylesheet" href="/styles/style.css">
-<link rel="stylesheet" href="/styles/judge.css">
-
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Оценка трека</title>
-
-<script src="https://w.soundcloud.com/player/api.js"></script>
-<script src="/js/judge.js"></script>
-
-</head>
-
-
-<body>
-    
-<div class="video-background">
-  <video autoplay muted loop playsinline id="background-video">
-    <source src="/images/bg.mp4" type="video/mp4">
-  </video>
-</div>    
-
-<div id="navbar"></div>
-<div id="player"></div>
-<script src="/js/player.js"></script>
-
-<script>
-fetch("/html/components/navbar.html")
-.then(res => res.text())
-.then(data => {
-  document.getElementById("navbar").innerHTML = data
-
-  const script = document.createElement("script")
-  script.src = "/js/navbar.js"
-  document.body.appendChild(script)
-})
-</script>
-
 <div class="judge-page">
   <div class="judge-card">
 
-<div class="top">
-  
+    <div class="judge-top">
+      <div class="judge-cover">
+        <div class="judge-cover-inner">
+          <img id="trackCover" class="judge-track-cover-image" src="">
+        </div>
+      </div>
 
-<div class="cover">
-  <div class="cover-inner">
-    <img id="trackCover" src="">
-  </div>
-</div>
-
-<div class="trackInfo">
-<small>ОЦЕНКА ТРЕКА</small>
-<h1 id="trackName">Track Name</h1>
-<h2 id="trackArtist">Artist Name</h2>
-</div>
-
-</div>
-
-<div class="custom-player">
-
-  <!-- 🎧 MP3 PLAYER -->
-  <div id="mp3Player" class="player-ui">
-
-  <div class="player-track">
-  <div class="vinyl">
-    <img id="playerCover" src="">
-  </div>
-    <div class="player-meta">
-      <div id="playerTitle">Track</div>
-      <div id="playerArtist">Artist</div>
-    </div>
-  </div>
-
-  <audio id="judgeAudio"></audio>
-
-  <div class="player-left">
-    <button id="playBtn">
-  <span class="icon play"></span>
-  <span class="icon pause"></span>
-</button>
-  </div>
-
-  <div class="player-center">
-    <div class="progress-wrap" id="progressWrap">
-      <div class="progress" id="progress"></div>
+      <div class="judge-track-info">
+        <small>ОЦЕНКА ТРЕКА</small>
+        <h1 id="trackName">Track Name</h1>
+        <h2 id="trackArtist">Artist Name</h2>
+      </div>
     </div>
 
-    <div class="time">
-      <span id="current">0:00</span>
-      <span id="duration">0:00</span>
+    <div class="judge-custom-player">
+
+      <!-- 🎧 MP3 PLAYER -->
+      <div id="mp3Player" class="judge-player-ui">
+
+        <div class="judge-player-track">
+          <div class="judge-vinyl">
+            <img id="playerCover" src="">
+          </div>
+
+          <div class="judge-player-meta">
+            <div id="playerTitle">Track</div>
+            <div id="playerArtist">Artist</div>
+          </div>
+        </div>
+
+        <audio id="judgeAudio"></audio>
+
+        <div class="judge-player-left">
+          <button id="playBtn" class="judge-play-button">
+            <span class="judge-icon judge-icon-play"></span>
+            <span class="judge-icon judge-icon-pause"></span>
+          </button>
+        </div>
+
+        <div class="judge-player-center">
+          <div class="judge-progress-wrap" id="progressWrap">
+            <div class="judge-progress-bar" id="progress"></div>
+          </div>
+
+          <div class="judge-time">
+            <span id="current">0:00</span>
+            <span id="duration">0:00</span>
+          </div>
+        </div>
+
+        <div class="judge-player-right">
+          <input type="range" id="volume" min="0" max="1" step="0.01">
+        </div>
+
+      </div>
+
+      <!-- 🌊 SOUNDCLOUD -->
+      <div id="scWrapper">
+        <iframe id="soundcloudPlayer" allow="autoplay"></iframe>
+      </div>
+
     </div>
+
+    <div class="judge-panel">
+
+      <div class="judge-row">
+        <div class="judge-row-title">РИФМЫ И ОБРАЗЫ</div>
+        <input id="s1" type="range" min="1" max="10" value="1">
+        <div class="judge-value-box" id="v1">10</div>
+      </div>
+
+      <div class="judge-row">
+        <div class="judge-row-title">СТРУКТУРА И РИТМИКА</div>
+        <input id="s2" type="range" min="1" max="10" value="1">
+        <div class="judge-value-box" id="v2">10</div>
+      </div>
+
+      <div class="judge-row">
+        <div class="judge-row-title">РЕАЛИЗАЦИЯ СТИЛЯ</div>
+        <input id="s3" type="range" min="1" max="10" value="1">
+        <div class="judge-value-box" id="v3">10</div>
+      </div>
+
+      <div class="judge-row">
+        <div class="judge-row-title">ИНДИВИДУАЛЬНОСТЬ И ХАРИЗМА</div>
+        <input id="s4" type="range" min="1" max="10" value="1">
+        <div class="judge-value-box" id="v4">10</div>
+      </div>
+
+    </div>
+
+    <div class="judge-panel judge-panel-bonus">
+
+      <div class="judge-row">
+        <div class="judge-row-title">АТМОСФЕРА И ВАЙБ</div>
+        <input id="b1" type="range" min="1" max="5" value="1">
+        <div class="judge-value-box" id="bv1">1</div>
+      </div>
+
+      <div class="judge-note">
+        Сначала база × (1 + вайб×0.1), потом × (1 + запоминаемость×0.1)
+      </div>
+
+    </div>
+
+    <div class="judge-panel judge-panel-bonus-2">
+
+      <div class="judge-row">
+        <div class="judge-row-title">ЗАПОМИНАЕМОСТЬ</div>
+        <input id="b2" type="range" min="1" max="5" value="1">
+        <div class="judge-value-box" id="bv2">1</div>
+      </div>
+
+    </div>
+
+    <div class="judge-bottom">
+
+      <div class="judge-summary">
+        <div class="judge-pill" id="baseExpr">10 + 10 + 10 + 10</div>
+        <div class="judge-pill judge-pill-red" id="bonusExpr1">× 1.1</div>
+        <div class="judge-pill judge-pill-red" id="bonusExpr2">× 1.1</div>
+        <div class="judge-pill">× 1.(11) =</div>
+        <div class="judge-result"><span id="total">48</span> БАЛЛОВ</div>
+      </div>
+
+      <div class="judge-actions">
+        <button id="resetBtn" class="judge-action-button judge-reset-button">ОЧИСТИТЬ</button>
+        <button id="rateBtn" class="judge-action-button judge-rate-button">ОЦЕНИТЬ</button>
+      </div>
+
+    </div>
+
   </div>
-
-  <div class="player-right">
-    <input type="range" id="volume" min="0" max="1" step="0.01">
-  </div>
-
 </div>
-
-  <!-- 🌊 SOUNDCLOUD -->
-  <div id="scWrapper">
-    <iframe id="soundcloudPlayer" allow="autoplay"></iframe>
-  </div>
-
-</div>
-
-<div class="panel">
-
-<div class="row">
-<div class="rowTitle">РИФМЫ И ОБРАЗЫ</div>
-<input id="s1" type="range" min="1" max="10" value="1">
-<div class="valueBox" id="v1">10</div>
-</div>
-
-<div class="row">
-<div class="rowTitle">СТРУКТУРА И РИТМИКА</div>
-<input id="s2" type="range" min="1" max="10" value="1">
-<div class="valueBox" id="v2">10</div>
-</div>
-
-<div class="row">
-<div class="rowTitle">РЕАЛИЗАЦИЯ СТИЛЯ</div>
-<input id="s3" type="range" min="1" max="10" value="1">
-<div class="valueBox" id="v3">10</div>
-</div>
-
-<div class="row">
-<div class="rowTitle">ИНДИВИДУАЛЬНОСТЬ И ХАРИЗМА</div>
-<input id="s4" type="range" min="1" max="10" value="1">
-<div class="valueBox" id="v4">10</div>
-</div>
-
-</div>
-
-<div class="panel2">
-
-<div class="row">
-<div class="rowTitle">АТМОСФЕРА И ВАЙБ</div>
-<input id="b1" type="range" min="1" max="5" value="1">
-<div class="valueBox" id="bv1">1</div>
-</div>
-
-<div class="note">
-Сначала база × (1 + вайб×0.1), потом × (1 + запоминаемость×0.1)
-</div>
-
-</div>
-
-<div class="panel3">
-
-<div class="row">
-<div class="rowTitle">ЗАПОМИНАЕМОСТЬ</div>
-<input id="b2" type="range" min="1" max="5" value="1">
-<div class="valueBox" id="bv2">1</div>
-</div>
-
-</div>
-
-<div class="bottom">
-
-<div class="summary">
-<div class="pill" id="baseExpr">10 + 10 + 10 + 10</div>
-<div class="pill red" id="bonusExpr1">× 1.1</div>
-<div class="pill red" id="bonusExpr2">× 1.1</div>
-<div class="pill">× 1.(11) =</div>
-<div class="result"><span id="total">48</span> БАЛЛОВ</div>
-</div>
-
-<div style="display:flex; gap:10px;">
-<button id="resetBtn">ОЧИСТИТЬ</button>
-<button id="rateBtn">ОЦЕНИТЬ</button>
-</div>
-
-</div>
-
-</div>
-</div>
-</div>
-
-</body>
-</html>

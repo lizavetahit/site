@@ -1,106 +1,68 @@
-<!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Трек</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="/styles/base.css">
-  <link rel="stylesheet" href="/styles/navbar.css">
-  <link rel="stylesheet" href="/styles/player.css">
-  <link rel="stylesheet" href="/styles/style.css">
-  <link rel="stylesheet" href="/styles/track.css">
-
-  <script src="https://w.soundcloud.com/player/api.js"></script>
-</head>
-<body>
-
-<div class="video-background">
-  <video autoplay muted loop playsinline id="background-video">
-    <source src="/images/bg.mp4" type="video/mp4">
-  </video>
-</div>
-
-<div id="navbar"></div>
-<div id="player"></div>
-<script src="/js/player.js"></script>
-
-<script>
-fetch("/html/components/navbar.html")
-.then(res => res.text())
-.then(data => {
-  document.getElementById("navbar").innerHTML = data;
-
-  const script = document.createElement("script");
-  script.src = "/js/navbar.js";
-  document.body.appendChild(script);
-});
-</script>
-
 <div class="track-page">
-  <div class="track-card">
+  <div class="track-page-card">
 
-    <div class="track-top">
-      <div class="track-cover-wrap">
-        <img id="trackCover" class="track-cover" src="">
+    <div class="track-page-top">
+      <div class="track-page-cover-wrap">
+        <img id="trackCover" class="track-page-cover" src="" alt="Обложка трека">
       </div>
 
-      <div class="track-info">
-        <small class="track-kicker">СТРАНИЦА ТРЕКА</small>
+      <div class="track-page-info">
+        <small class="track-page-kicker">СТРАНИЦА ТРЕКА</small>
         <h1 id="trackName">Название трека</h1>
         <h2 id="trackArtist">Артист</h2>
 
-        <div class="track-scores">
-         <div class="score-chip score-chip-judge" id="judgeHover">
+        <div class="track-page-scores">
+          <div class="track-page-score-chip track-page-score-chip-judge" id="judgeHover">
+            <span>Судьи</span>
+            <span id="judgeScore">—</span>
 
-  <span>🎧 Судьи</span>
-  <span id="judgeScore">—</span>
+            <div id="judgePopup" class="track-page-judge-popup">
+              <div class="track-page-judge-popup-content">
 
-  <!-- POPUP -->
-  <div id="judgePopup" class="judge-popup">
-    <div class="judge-popup-content">
+                <div class="track-page-judge-header">
+                  <div>Судья</div>
+                  <div>Рифмы</div>
+                  <div>Структура</div>
+                  <div>Стиль</div>
+                  <div>Харизма</div>
+                  <div>Вайб</div>
+                  <div>Память</div>
+                  <div>AVG</div>
+                </div>
 
-      <div class="judge-header">
-  <div>Судья</div>
-  <div>Рифмы</div>
-  <div>Структура</div>
-  <div>Стиль</div>
-  <div>Харизма</div>
-  <div>Вайб</div>
-  <div>Память</div>
-  <div>AVG</div>
-</div>
+                <div id="judgeRows"></div>
 
-      <div id="judgeRows"></div>
+              </div>
+            </div>
+          </div>
 
-    </div>
-  </div>
-
-</div> 
-
-          <div class="score-chip score-chip-user">
-            <span class="score-icon">👥</span>
+          <div class="track-page-score-chip track-page-score-chip-user">
             <span>Пользовательские оценки:</span>
             <b id="userScore">—</b>
           </div>
         </div>
 
-        <div class="track-reactions">
-          <button class="reaction-btn" id="likeBtn">👍 <span id="likes">0</span></button>
-          <button class="reaction-btn" id="dislikeBtn">👎 <span id="dislikes">0</span></button>
+        <div class="track-page-reactions">
+          <button class="track-page-reaction-btn track-page-reaction-like" id="likeBtn">
+            <i class="fa-solid fa-heart"></i>
+            <span id="likes">0</span>
+          </button>
+
+          <button class="track-page-reaction-btn track-page-reaction-dislike" id="dislikeBtn">
+            <i class="fa-solid fa-heart-crack"></i>
+            <span id="dislikes">0</span>
+          </button>
         </div>
       </div>
     </div>
 
-    <div class="track-player-box">
+    <div class="track-page-player-box">
       <div class="custom-player">
 
         <div id="mp3Player" class="player-ui">
           <div class="player-track">
             <div class="vinyl">
-              <img id="playerCover" src="">
+              <img id="playerCover" src="" alt="Cover">
             </div>
 
             <div class="player-meta">
@@ -134,20 +96,20 @@ fetch("/html/components/navbar.html")
           </div>
         </div>
 
-        <div id="scWrapper">
+        <div id="scWrapper" class="track-page-sc-wrapper">
           <iframe id="soundcloudPlayer" allow="autoplay"></iframe>
         </div>
       </div>
     </div>
 
-    <div class="track-panel">
-      <div id="criteriaList" class="criteria-list"></div>
+    <div class="track-page-panel">
+      <div id="criteriaList" class="track-page-criteria-list"></div>
     </div>
 
-    <div class="track-panel">
-      <h3 class="comments-title">Комментарии</h3>
+    <div class="track-page-panel">
+      <h3 class="track-page-comments-title">Комментарии</h3>
 
-      <div class="comment-form">
+      <div class="track-page-comment-form">
         <textarea id="commentInput" placeholder="Написать комментарий..."></textarea>
         <button id="sendComment">Отправить</button>
       </div>
@@ -157,7 +119,3 @@ fetch("/html/components/navbar.html")
 
   </div>
 </div>
-
-<script src="/js/track.js"></script>
-</body>
-</html>

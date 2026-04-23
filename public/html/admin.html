@@ -1,45 +1,14 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <title>Админ панель</title>
+<div class="admin-page">
+  <div class="admin-container">
 
-  <link rel="stylesheet" href="/styles/base.css">
-  <link rel="stylesheet" href="/styles/navbar.css">
-  <link rel="stylesheet" href="/styles/style.css">
-  <link rel="stylesheet" href="/styles/admin.css">
+    <h1 class="admin-title">Админ панель</h1>
 
-  <script defer src="/js/navbar.js"></script>
-  <script defer src="/js/admin.js"></script>
-</head>
+    <div class="admin-search">
+      <input id="adminSearch" placeholder="Поиск по @username_tag...">
+      <div id="adminSearchResults"></div>
+    </div>
 
-<body>
+    <div id="usersList" class="users-list"></div>
 
-<!-- 🎥 ФОН -->
-<div class="video-background">
-  <video autoplay muted loop playsinline id="background-video">
-    <source src="/images/bg.mp4" type="video/mp4">
-  </video>
-</div>
-
-<!-- NAVBAR -->
-<div id="navbar"></div>
-
-<!-- КОНТЕНТ -->
-<div class="admin-container">
-
-  <h1 class="admin-title">Админ панель</h1>
-
-  <!-- 🔍 ПОИСК -->
-  <div class="admin-search">
-    <input id="adminSearch" placeholder="Поиск по @username_tag...">
-    <div id="adminSearchResults"></div>
   </div>
-
-  <!-- 👥 СПИСОК -->
-  <div id="usersList" class="users-list"></div>
-
 </div>
-
-</body>
-</html>
